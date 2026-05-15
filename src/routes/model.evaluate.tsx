@@ -57,15 +57,15 @@ function EvaluatePage() {
           <ConfusionMatrix m={c.confusion} />
         </Section>
 
-        <Section title="Predicted vs Actual" description={`R² = ${best.r2.toFixed(3)}`} className="lg:col-span-2">
+      <Section title="Predicted vs Actual" description={`R² = ${best.r2.toFixed(3)}`} className="lg:col-span-2">
           <div className="h-64">
             <ResponsiveContainer>
               <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" />
                 <XAxis type="number" dataKey="x" name="Actual" stroke="var(--muted-foreground)" fontSize={11} domain={[0, 20]} />
                 <YAxis type="number" dataKey="y" name="Predicted" stroke="var(--muted-foreground)" fontSize={11} domain={[0, 20]} />
                 <Tooltip contentStyle={tooltipStyle} cursor={{ strokeDasharray: "3 3" }} />
-                <Scatter data={predVsActual} fill="var(--primary)" />
+                <Scatter data={predVsActual} fill="var(--warning)" fillOpacity={0.75} />
               </ScatterChart>
             </ResponsiveContainer>
           </div>
@@ -91,11 +91,11 @@ function EvaluatePage() {
           <div className="h-56">
             <ResponsiveContainer>
               <BarChart data={[...data.top_features].slice(0, 8).reverse()} layout="vertical" margin={{ left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} />
                 <YAxis dataKey="feature" type="category" stroke="var(--muted-foreground)" fontSize={11} width={90} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => v.toFixed(3)} />
-                <Bar dataKey="importance" fill="var(--primary)" radius={[0, 3, 3, 0]} />
+                <Bar dataKey="importance" fill="var(--primary)" radius={[0, 10, 10, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

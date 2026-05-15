@@ -7,8 +7,8 @@ import {
   Users, GraduationCap, TrendingUp, AlertTriangle, Trophy, CalendarCheck, Cpu,
 } from "lucide-react";
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
-  ScatterChart, Scatter, ZAxis,
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
+  RadialBarChart, RadialBar, PolarAngleAxis, Legend,
 } from "recharts";
 
 export const Route = createFileRoute("/dashboard")({
@@ -46,7 +46,12 @@ function Dashboard() {
   }
 
   const dist = histogram(students.map((s) => s.final_score), 10, 0, 100);
-  const scatter = students.map((s) => ({ x: s.attendance, y: s.final_score, name: s.name }));
+  const passCount = students.filter((s) => s.final_score >= PASS_THRESHOLD).length;
+  const radial = [
+    { name: "Pass rate", value: stats.pass_rate, fill: "var(--success)" },
+    { name: "Attendance", value: stats.avg_attendance, fill: "var(--primary)" },
+    { name: "Avg score", value: stats.avg_score, fill: "var(--warning)" },
+  ];
   const atRisk = topN(students.filter((s) => s.risk_level === "High"), 8, (s) => -s.final_score);
   const top = topN(students, 8, (s) => s.final_score);
 
@@ -70,28 +75,32 @@ function Dashboard() {
         <Section title="Final score distribution" description="Cohort spread across score bands" className="lg:col-span-2">
           <div className="h-64">
             <ResponsiveContainer>
-              <BarChart data={dist}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <AreaChart data={dist} margin={{ top: 10, right: 12, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="distGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.55} />
+                    <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="bucket" stroke="var(--muted-foreground)" fontSize={11} />
                 <YAxis stroke="var(--muted-foreground)" fontSize={11} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="count" fill="var(--primary)" radius={[3, 3, 0, 0]} />
-              </BarChart>
+                <Area type="monotone" dataKey="count" stroke="var(--primary)" strokeWidth={2.5} fill="url(#distGrad)" />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </Section>
 
-        <Section title="Attendance vs Final Score" description="Stronger attendance trends with higher scores">
+        <Section title="Cohort vitals" description={`${passCount} of ${stats.n} students passing`}>
           <div className="h-64">
             <ResponsiveContainer>
-              <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis type="number" dataKey="x" name="Attendance" unit="%" stroke="var(--muted-foreground)" fontSize={11} domain={[30, 100]} />
-                <YAxis type="number" dataKey="y" name="Score" stroke="var(--muted-foreground)" fontSize={11} domain={[0, 100]} />
-                <ZAxis range={[20, 20]} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ strokeDasharray: "3 3" }} />
-                <Scatter data={scatter} fill="var(--primary)" fillOpacity={0.55} />
-              </ScatterChart>
+              <RadialBarChart innerRadius="35%" outerRadius="100%" data={radial} startAngle={90} endAngle={-270}>
+                <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                <RadialBar background dataKey="value" cornerRadius={8} />
+                <Legend iconSize={8} layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ fontSize: 11 }} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v}`} />
+              </RadialBarChart>
             </ResponsiveContainer>
           </div>
         </Section>

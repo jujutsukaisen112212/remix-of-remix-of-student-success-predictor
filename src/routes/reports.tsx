@@ -35,12 +35,12 @@ function ReportsPage() {
     const blob = new Blob([csv], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `scholarsense_report_${Date.now()}.csv`; a.click();
+    a.download = `intellecta_report_${Date.now()}.csv`; a.click();
   };
 
   const exportPdf = () => {
     const doc = new jsPDF();
-    doc.setFontSize(16); doc.text("ScholarSense — Cohort Report", 14, 18);
+    doc.setFontSize(16); doc.text("Intellecta — Cohort Report", 14, 18);
     doc.setFontSize(10); doc.setTextColor(100);
     doc.text(`Generated ${new Date().toLocaleString()} · ${stats.n} students`, 14, 24);
 
@@ -66,7 +66,7 @@ function ReportsPage() {
       theme: "striped", styles: { fontSize: 9 },
       head: [["Rank", "ID", "Name", "Class", "Att%", "Score"]],
       body: top10.map((s, i) => [i + 1, s.id, s.name, s.class, s.attendance, s.final_score]),
-      headStyles: { fillColor: [60, 70, 200] },
+      headStyles: { fillColor: [30, 58, 107] },
     });
 
     const atRisk = topN(filtered.filter((s) => s.risk_level === "High"), 10, (s) => -s.final_score);
@@ -79,7 +79,7 @@ function ReportsPage() {
         headStyles: { fillColor: [180, 60, 60] },
       });
     }
-    doc.save(`scholarsense_report_${Date.now()}.pdf`);
+    doc.save(`intellecta_report_${Date.now()}.pdf`);
   };
 
   return (

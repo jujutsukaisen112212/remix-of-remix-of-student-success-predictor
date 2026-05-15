@@ -4,7 +4,8 @@ import { PageHeader, Section } from "@/components/ui-kit";
 import { correlationMatrix, histogram, NUMERIC_KEYS, pearson } from "@/lib/analytics";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
-  ScatterChart, Scatter, PieChart, Pie, LineChart, Line,
+  ScatterChart, Scatter, RadialBarChart, RadialBar, PolarAngleAxis, Legend,
+  ComposedChart, Area, Line, AreaChart,
 } from "recharts";
 import { Sparkles } from "lucide-react";
 
@@ -72,10 +73,10 @@ function EDA() {
         </Section>
 
         <Section title="Sleep hours distribution">
-          <Hist data={sleepDist} />
+          <AreaHist data={sleepDist} />
         </Section>
         <Section title="Attendance distribution">
-          <Hist data={attDist} />
+          <AreaHist data={attDist} />
         </Section>
 
         <Section title="Pass rate by assignment completion">
@@ -96,16 +97,18 @@ function EDA() {
           </div>
         </Section>
 
-        <Section title="Average score by participation">
+        <Section title="Average score by participation" description="Bars = avg score · line = student count">
           <div className="h-64">
             <ResponsiveContainer>
-              <LineChart data={partGroups}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <ComposedChart data={partGroups}>
+                <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="participation" stroke="var(--muted-foreground)" fontSize={11} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} />
+                <YAxis yAxisId="left" stroke="var(--muted-foreground)" fontSize={11} />
+                <YAxis yAxisId="right" orientation="right" stroke="var(--muted-foreground)" fontSize={11} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Line type="monotone" dataKey="avg_score" stroke="var(--primary)" strokeWidth={2} dot={{ r: 4, fill: "var(--primary)" }} />
-              </LineChart>
+                <Bar yAxisId="left" dataKey="avg_score" fill="var(--primary)" radius={[8, 8, 0, 0]} barSize={48} />
+                <Line yAxisId="right" type="monotone" dataKey="count" stroke="var(--warning)" strokeWidth={2.5} dot={{ r: 5, fill: "var(--warning)" }} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </Section>
@@ -113,12 +116,12 @@ function EDA() {
         <Section title="Pass / Fail distribution">
           <div className="flex items-center justify-center h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={passFail} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} label={(e: any) => `${e.name}: ${e.value}`}>
-                  {passFail.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
+              <RadialBarChart innerRadius="40%" outerRadius="95%" data={passFail.map((d) => ({ ...d, fill: d.color }))} startAngle={180} endAngle={-180}>
+                <PolarAngleAxis type="number" domain={[0, students.length]} tick={false} />
+                <RadialBar background dataKey="value" cornerRadius={10} />
+                <Legend iconSize={8} layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ fontSize: 11 }} />
                 <Tooltip contentStyle={tooltipStyle} />
-              </PieChart>
+              </RadialBarChart>
             </ResponsiveContainer>
           </div>
         </Section>
@@ -159,17 +162,23 @@ function Scatter2D({ data, xLabel, yLabel, xMin, xMax }: { data: { x: number; y:
   );
 }
 
-function Hist({ data }: { data: { bucket: string; count: number }[] }) {
+function AreaHist({ data }: { data: { bucket: string; count: number }[] }) {
   return (
     <div className="h-64">
       <ResponsiveContainer>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <AreaChart data={data} margin={{ top: 10, right: 12, left: -10, bottom: 0 }}>
+          <defs>
+            <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--warning)" stopOpacity={0.6} />
+              <stop offset="100%" stopColor="var(--warning)" stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" vertical={false} />
           <XAxis dataKey="bucket" stroke="var(--muted-foreground)" fontSize={11} />
           <YAxis stroke="var(--muted-foreground)" fontSize={11} />
           <Tooltip contentStyle={tooltipStyle} />
-          <Bar dataKey="count" fill="var(--chart-5)" radius={[3, 3, 0, 0]} />
-        </BarChart>
+          <Area type="monotone" dataKey="count" stroke="var(--warning)" strokeWidth={2.5} fill="url(#histGrad)" />
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
@@ -179,7 +188,7 @@ function Heatmap({ matrix }: { matrix: { feature: string; values: number[] }[] }
   const cols = NUMERIC_KEYS as unknown as string[];
   const cell = (v: number) => {
     const a = Math.abs(v);
-    const bg = v >= 0 ? `oklch(0.42 0.14 265 / ${a})` : `oklch(0.60 0.20 25 / ${a})`;
+    const bg = v >= 0 ? `oklch(0.34 0.12 258 / ${a})` : `oklch(0.62 0.18 22 / ${a})`;
     const fg = a > 0.55 ? "white" : "var(--foreground)";
     return { background: bg, color: fg };
   };
