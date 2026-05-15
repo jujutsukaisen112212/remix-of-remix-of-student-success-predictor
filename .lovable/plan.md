@@ -1,65 +1,72 @@
-## Goals
+# Rebrand to Intellecta + Splash + Full Visual Overhaul
 
-1. "Remove all the mock data" must only remove the 500 seeded sample rows — never CSV-imported or manually entered students.
-2. When the student list is empty, the **Manual entry** and **Sample dataset** tabs must respond to clicks.
-3. CSV upload should actually surface what happens — today rows can silently fail to persist and the user has no feedback.
+## 1. Branding & assets
+- Save the uploaded logo to `src/assets/intellecta-logo.png` and `public/icon-512.png` (replace favicon/PWA icon).
+- Replace every "ScholarSense" / "Academic Analytics" string with **Intellecta** across:
+  - `src/components/WorkspaceShell.tsx` (sidebar header, topbar breadcrumb, page title fallback)
+  - `index.html` (`<title>`, meta description, OG/Twitter tags, apple-mobile-web-app-title)
+  - `public/manifest.json` (name, short_name, description, theme color)
+  - `src/routes/__root.tsx` (404 link target)
+  - Any remaining mentions in dashboard / reports / footer copy.
 
----
+## 2. Splash screen replaces the landing page
+- Delete `src/routes/index.tsx`'s landing content. Replace with a splash route:
+  - Centered Intellecta logo on a clean background matching the logo's navy + silver.
+  - Logo "blinks" (opacity pulse, ~1s cycle, 2 cycles ≈ 2s total) with a subtle scale.
+  - After ~2.2s, auto-navigate to `/dashboard` via `router.navigate`.
+  - Also clickable to skip.
+- Remove the `loc.pathname === "/"` early-return in `WorkspaceShell` so the splash renders fullscreen without the sidebar (use a flag or render splash component directly inside the route file with no shell wrapping — simplest: keep the early-return but render the splash inside index.tsx).
+- Update `manifest.json` `start_url` stays `/dashboard` so PWA opens past splash; web visitors hit `/` → splash → dashboard.
 
-## 1. Tag rows by origin so we can selectively clear
+## 3. New color system (replace current indigo/slate palette)
+Adopt a **Navy + Silver + Soft Gold** palette inspired by the logo:
+- Primary: deep navy `oklch(0.32 0.10 255)` (matches logo blue)
+- Accent / chart highlight: warm gold `oklch(0.78 0.13 85)`
+- Secondary surfaces: warm silver/cool gray
+- Success/warn/danger retuned to harmonise (teal / amber / coral)
+- Update both `:root` and `.dark` blocks in `src/styles.css`, plus all 5 chart tokens.
+- Add a `--gradient-hero` and `--shadow-elegant` token used by cards.
 
-Today `addStudents` accepts a `source` of `"manual" | "csv"`, and the sample-load button passes `"csv"` — so sample rows look identical to user-uploaded CSV rows. We will:
+## 4. Layout pattern overhaul
+Switch from "sidebar + topbar + flat cards" to a **bento-style workspace**:
+- Sidebar: convert to a slim **icon rail** (always collapsed look, expands on hover) with a top logo badge. Group labels become tooltips.
+- Topbar: replace breadcrumb with a large page title + subtitle row, plus a right-side action cluster.
+- Page content: introduce a reusable `<BentoGrid>` and `<BentoTile>` (in `src/components/ui-kit.tsx`) that pages opt into. Tiles have rounded-2xl corners, soft elevation, and varied column spans (`col-span-2`, `row-span-2`) for visual rhythm — applied first on Dashboard, EDA, Evaluate, Reports.
+- Cards get `rounded-2xl`, hairline borders, gradient header strips for KPI tiles.
 
-- Extend the `source` union to `"manual" | "csv" | "sample"` in `src/stores/workspace.tsx` (and the DB column already accepts free text).
-- In `src/routes/data.upload.tsx`, change the sample-load handler to call `workspace.addStudents(SAMPLE_STUDENTS, "sample")`.
-- Track `source` on the engineered student in memory (small extension to the `EngineeredStudent` type / `engineer()` pass-through) so the local state knows which rows are sample vs. user data.
+## 5. Chart redesign (type + library style)
+Currently the app mixes hand-rolled SVG bar charts and Recharts. Standardise on **Recharts with a fresh visual language** and swap chart types where it improves the story:
+- Dashboard grade distribution: hand-rolled `<svg>` bars → **Recharts AreaChart** with gradient fill.
+- EDA correlations: bar list → **horizontal Recharts BarChart** with diverging colors (gold for positive, coral for negative).
+- EDA studytime/absences/failures averages: bar → **Recharts ComposedChart** (bars + line for count).
+- Pass-rate-by-group: bar → **Recharts RadialBarChart**.
+- Evaluate confusion matrix: keep matrix but restyle as a heatmap grid using token colors.
+- Evaluate feature importance: vertical bars → **Recharts horizontal BarChart with rounded caps**.
+- Predict explanation: keep but recolor.
+- Reports: add a sparkline strip (Recharts LineChart) above each section.
+All charts share a `chartTheme.ts` helper for axis/grid/tooltip styling using design tokens.
 
-## 2. Rewrite `clearAll` → `clearMockData`
+## 6. Naming alignment
+The requested labels already match the current sidebar groups/items. Action: confirm and keep:
+- Group **Data Pipeline** → rename to **Data** (cleaner). Items: Data Collection, Cleaning, EDA, Feature Engineering.
+- Group **Modeling** → items: Evaluate, Predict, Batch Predict.
+- Group **Administration** → item: Model Operations.
+- Group **Output** → item: Reports.
+- Update `TITLES` map and any in-page H1s to match.
 
-- Rename `workspace.clearAll()` to `workspace.clearMockData()`.
-- It will:
-  - Filter local `state.students` to keep everything where `source !== "sample"`.
-  - Delete only the sample rows from Supabase: `supabase.from("students").delete().eq("source", "sample")`.
-- This requires a new RLS DELETE policy scoped to sample rows only, added via `supabase--migration`:
-  ```sql
-  CREATE POLICY "Public can delete sample students"
-    ON public.students FOR DELETE
-    TO public
-    USING (source = 'sample');
-  ```
-  Manual / CSV rows remain undeletable from the client, preserving the earlier security fix.
-- Update the button label/confirm copy in `data.upload.tsx` to "Remove sample data — your manual and CSV entries will be kept".
-- Update the secondary "Reset" button in the Data preview section to use the same scoped clear (or remove it to avoid confusion).
+## 7. Cleanup
+- Remove unused `<spline-viewer>` script tag from `index.html` (only the landing used it).
+- Remove `src/components/AppShell.tsx` if no longer referenced.
+- Drop the `GraduationCap` lucide icon header in favour of an `<img src={logo} />`.
 
-## 3. Fix unresponsive tabs when student count is 0
+## Technical notes
+- All color changes go through `src/styles.css` tokens — no hex literals in components.
+- Splash uses CSS keyframes (no animation library needed).
+- Recharts is already a dependency (used in existing routes), no new installs.
+- Route tree unchanged — `/` still exists, just renders splash.
+- Keep Supabase wiring untouched.
 
-Reproduce first, then patch. Likely cause: with `students = []`, the column-stats block computes `Math.min(...[])` = `Infinity` and `Math.max(...[])` = `-Infinity`, which the `DataTable` happily renders, but the empty `students.slice(0, 50)` table below may throw inside a render path that unmounts the Tabs subtree on the first click. Plan:
-
-- Reproduce in the preview with an empty dataset and capture the console error.
-- Guard the stats / preview blocks: when `students.length === 0`, render an empty-state card instead of computing stats or rendering `DataTable`. This keeps the Tabs component mounted and interactive.
-- Verify all three tabs switch correctly with 0, 1, and 500 rows.
-
-## 4. CSV upload — make persistence visible
-
-`handleCsv` parses fine, but `addStudents` is fire-and-forget: a Supabase insert error silently rolls back the optimistic append and the user just sees "nothing happened". Plan:
-
-- `await` the `addStudents` result inside `handleCsv` and `addManual`.
-- On `{ inserted, error }`:
-  - Success → show a sonner toast `Imported N students`.
-  - Failure → show an inline error banner with the Supabase message (reuse the existing `csvError` UI).
-- When the CSV file's first row is the headers but column names don't match (`name`, `class`, `attendance`, …), every numeric becomes `0` — we already silently coerce. Add a one-line detection: if **all** rows produce `final_score === 0` and `attendance === 0`, surface a "CSV columns don't match expected schema" warning so the user knows why their numbers are missing.
-- Keep the optimistic append, but on failure leave the rolled-back state and the visible error banner so the discrepancy is obvious.
-
----
-
-## Technical details
-
-Files touched:
-- `src/stores/workspace.tsx` — extend `source` union, propagate to engineered student, replace `clearAll` with `clearMockData`.
-- `src/routes/data.upload.tsx` — pass `"sample"` for the sample loader, await results + toasts, empty-state guards, updated button copy.
-- New migration adding the scoped `DELETE` policy on `public.students`.
-
-Out of scope:
-- Authentication / user-scoped ownership of rows (still public read+insert).
-- Schema-mapping UI for arbitrary CSV column names — we only warn when the standard columns are missing.
-- Deduplication of re-uploaded CSVs beyond the existing `student_code` check.
+## Out of scope
+- No backend/data changes.
+- No auth.
+- No new pages.

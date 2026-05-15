@@ -1,8 +1,9 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
-  GraduationCap, LayoutDashboard, Upload, Sparkles, BarChart3, Layers,
-  Cpu, Gauge, Wand2, FileText, Moon, Sun, ChevronRight, FileSpreadsheet, Settings,
+  LayoutDashboard, Upload, Sparkles, BarChart3, Layers,
+  Gauge, Wand2, FileText, Moon, Sun, ChevronRight, FileSpreadsheet, Settings,
 } from "lucide-react";
+import logo from "@/assets/intellecta-logo.png";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
@@ -17,7 +18,7 @@ const NAV: { label: string; items: { to: string; label: string; icon: React.Comp
     items: [{ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
   },
   {
-    label: "Data Pipeline",
+    label: "Data",
     items: [
       { to: "/data/upload", label: "Data Collection", icon: Upload },
       { to: "/data/clean", label: "Cleaning", icon: Sparkles },
@@ -46,13 +47,13 @@ const NAV: { label: string; items: { to: string; label: string; icon: React.Comp
 const TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/data/upload": "Data Collection",
-  "/data/clean": "Data Cleaning & Preprocessing",
-  "/eda": "Exploratory Data Analysis",
+  "/data/clean": "Cleaning",
+  "/eda": "EDA",
   "/features": "Feature Engineering",
   "/model/train": "Model Training",
-  "/model/evaluate": "Model Evaluation",
-  "/predict": "Performance Prediction",
-  "/predict/batch": "Batch Predictions",
+  "/model/evaluate": "Evaluate",
+  "/predict": "Predict",
+  "/predict/batch": "Batch Predict",
   "/admin/models": "Model Operations",
   "/reports": "Reports & Insights",
 };
@@ -65,14 +66,14 @@ function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-2.5 px-2 py-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <GraduationCap className="h-4 w-4" />
+        <Link to="/dashboard" className="flex items-center gap-2.5 px-2 py-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
+            <img src={logo} alt="Intellecta" className="h-7 w-7 object-contain" />
           </div>
           {!collapsed && (
             <div className="leading-tight">
-              <div className="text-sm font-semibold text-sidebar-foreground">ScholarSense</div>
-              <div className="text-[11px] text-muted-foreground">Academic Analytics</div>
+              <div className="font-mono text-sm font-bold tracking-[0.18em] text-sidebar-foreground">INTELLECTA</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-sidebar-foreground/60">ML Workspace</div>
             </div>
           )}
         </Link>
@@ -103,8 +104,8 @@ function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
         {!collapsed && (
-          <div className="px-2 py-1.5 text-[11px] text-muted-foreground">
-            v1.0 · UCI + synthetic dataset
+          <div className="px-2 py-1.5 text-[11px] text-sidebar-foreground/60">
+            Intellecta v1 · UCI + synthetic
           </div>
         )}
       </SidebarFooter>
@@ -154,13 +155,13 @@ function RouteProgress() {
 
 function Topbar() {
   const loc = useLocation();
-  const title = TITLES[loc.pathname] ?? "ScholarSense";
+  const title = TITLES[loc.pathname] ?? "Intellecta";
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-background/75 px-4 backdrop-blur-xl">
       <div className="flex items-center gap-2">
         <SidebarTrigger />
         <nav className="ml-2 flex items-center gap-1.5 text-sm">
-          <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">ScholarSense</Link>
+          <Link to="/dashboard" className="font-mono text-xs font-bold tracking-[0.18em] text-muted-foreground hover:text-foreground">INTELLECTA</Link>
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="font-medium text-foreground">{title}</span>
         </nav>
@@ -178,7 +179,7 @@ function Topbar() {
 export function WorkspaceShell() {
   const loc = useLocation();
   useHydrateWorkspace();
-  // Landing page renders without the sidebar shell.
+  // Splash route renders fullscreen without the sidebar shell.
   if (loc.pathname === "/") return <Outlet />;
   return (
     <SidebarProvider>
