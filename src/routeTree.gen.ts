@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudentsRouteImport } from './routes/students'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as PredictRouteImport } from './routes/predict'
+import { Route as InterventionsRouteImport } from './routes/interventions'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as EdaRouteImport } from './routes/eda'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -37,6 +38,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const PredictRoute = PredictRouteImport.update({
   id: '/predict',
   path: '/predict',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InterventionsRoute = InterventionsRouteImport.update({
+  id: '/interventions',
+  path: '/interventions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeaturesRoute = FeaturesRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
+  '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
   '/students': typeof StudentsRouteWithChildren
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
+  '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
   '/students': typeof StudentsRouteWithChildren
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
+  '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
   '/students': typeof StudentsRouteWithChildren
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/eda'
     | '/features'
+    | '/interventions'
     | '/predict'
     | '/reports'
     | '/students'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/eda'
     | '/features'
+    | '/interventions'
     | '/predict'
     | '/reports'
     | '/students'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/eda'
     | '/features'
+    | '/interventions'
     | '/predict'
     | '/reports'
     | '/students'
@@ -200,6 +212,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   EdaRoute: typeof EdaRoute
   FeaturesRoute: typeof FeaturesRoute
+  InterventionsRoute: typeof InterventionsRoute
   PredictRoute: typeof PredictRouteWithChildren
   ReportsRoute: typeof ReportsRoute
   StudentsRoute: typeof StudentsRouteWithChildren
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       path: '/predict'
       fullPath: '/predict'
       preLoaderRoute: typeof PredictRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interventions': {
+      id: '/interventions'
+      path: '/interventions'
+      fullPath: '/interventions'
+      preLoaderRoute: typeof InterventionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/features': {
@@ -341,6 +361,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   EdaRoute: EdaRoute,
   FeaturesRoute: FeaturesRoute,
+  InterventionsRoute: InterventionsRoute,
   PredictRoute: PredictRouteWithChildren,
   ReportsRoute: ReportsRoute,
   StudentsRoute: StudentsRouteWithChildren,
