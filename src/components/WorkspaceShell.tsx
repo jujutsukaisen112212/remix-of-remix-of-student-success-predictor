@@ -1,7 +1,8 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Upload, Sparkles, BarChart3, Layers,
+  LayoutDashboard, Upload, BarChart3,
   Gauge, Wand2, FileText, Moon, Sun, ChevronRight, FileSpreadsheet, Settings,
+  Users, ShieldAlert, BellRing,
 } from "lucide-react";
 import logo from "@/assets/intellecta-logo.png";
 import {
@@ -20,10 +21,15 @@ const NAV: { label: string; items: { to: string; label: string; icon: React.Comp
   {
     label: "Data",
     items: [
-      { to: "/data/upload", label: "Data Collection", icon: Upload },
-      { to: "/data/clean", label: "Cleaning", icon: Sparkles },
-      { to: "/eda", label: "EDA", icon: BarChart3 },
-      { to: "/features", label: "Feature Engineering", icon: Layers },
+      { to: "/data/upload", label: "Data Portal", icon: Upload },
+      { to: "/eda", label: "Insights & Trends", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Students",
+    items: [
+      { to: "/students", label: "Cohort Roster", icon: Users },
+      { to: "/interventions", label: "Interventions", icon: ShieldAlert },
     ],
   },
   {
@@ -40,16 +46,22 @@ const NAV: { label: string; items: { to: string; label: string; icon: React.Comp
   },
   {
     label: "Output",
-    items: [{ to: "/reports", label: "Reports", icon: FileText }],
+    items: [
+      { to: "/reports", label: "Reports", icon: FileText },
+      { to: "/alerts", label: "Alerts", icon: BellRing },
+    ],
   },
 ];
 
 const TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/data/upload": "Data Collection",
+  "/data/upload": "Data Portal",
   "/data/clean": "Cleaning",
-  "/eda": "EDA",
+  "/eda": "Insights & Trends",
   "/features": "Feature Engineering",
+  "/students": "Cohort Roster",
+  "/interventions": "Risk Mitigation & Interventions",
+  "/alerts": "Automated Alerts",
   "/model/train": "Model Training",
   "/model/evaluate": "Evaluate",
   "/predict": "Predict",
