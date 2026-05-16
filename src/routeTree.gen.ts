@@ -9,12 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudentsRouteImport } from './routes/students'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as PredictRouteImport } from './routes/predict'
+import { Route as InterventionsRouteImport } from './routes/interventions'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as EdaRouteImport } from './routes/eda'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudentsStudentIdRouteImport } from './routes/students.$studentId'
 import { Route as PredictBatchRouteImport } from './routes/predict.batch'
 import { Route as ModelTrainRouteImport } from './routes/model.train'
 import { Route as ModelEvaluateRouteImport } from './routes/model.evaluate'
@@ -22,6 +26,11 @@ import { Route as DataUploadRouteImport } from './routes/data.upload'
 import { Route as DataCleanRouteImport } from './routes/data.clean'
 import { Route as AdminModelsRouteImport } from './routes/admin.models'
 
+const StudentsRoute = StudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -30,6 +39,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const PredictRoute = PredictRouteImport.update({
   id: '/predict',
   path: '/predict',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InterventionsRoute = InterventionsRouteImport.update({
+  id: '/interventions',
+  path: '/interventions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeaturesRoute = FeaturesRouteImport.update({
@@ -47,10 +61,20 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlertsRoute = AlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const StudentsStudentIdRoute = StudentsStudentIdRouteImport.update({
+  id: '/$studentId',
+  path: '/$studentId',
+  getParentRoute: () => StudentsRoute,
 } as any)
 const PredictBatchRoute = PredictBatchRouteImport.update({
   id: '/batch',
@@ -85,99 +109,126 @@ const AdminModelsRoute = AdminModelsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
+  '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
+  '/students': typeof StudentsRouteWithChildren
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
   '/model/evaluate': typeof ModelEvaluateRoute
   '/model/train': typeof ModelTrainRoute
   '/predict/batch': typeof PredictBatchRoute
+  '/students/$studentId': typeof StudentsStudentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
+  '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
+  '/students': typeof StudentsRouteWithChildren
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
   '/model/evaluate': typeof ModelEvaluateRoute
   '/model/train': typeof ModelTrainRoute
   '/predict/batch': typeof PredictBatchRoute
+  '/students/$studentId': typeof StudentsStudentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
+  '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
+  '/students': typeof StudentsRouteWithChildren
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
   '/model/evaluate': typeof ModelEvaluateRoute
   '/model/train': typeof ModelTrainRoute
   '/predict/batch': typeof PredictBatchRoute
+  '/students/$studentId': typeof StudentsStudentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/alerts'
     | '/dashboard'
     | '/eda'
     | '/features'
+    | '/interventions'
     | '/predict'
     | '/reports'
+    | '/students'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
     | '/model/evaluate'
     | '/model/train'
     | '/predict/batch'
+    | '/students/$studentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/alerts'
     | '/dashboard'
     | '/eda'
     | '/features'
+    | '/interventions'
     | '/predict'
     | '/reports'
+    | '/students'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
     | '/model/evaluate'
     | '/model/train'
     | '/predict/batch'
+    | '/students/$studentId'
   id:
     | '__root__'
     | '/'
+    | '/alerts'
     | '/dashboard'
     | '/eda'
     | '/features'
+    | '/interventions'
     | '/predict'
     | '/reports'
+    | '/students'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
     | '/model/evaluate'
     | '/model/train'
     | '/predict/batch'
+    | '/students/$studentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlertsRoute: typeof AlertsRoute
   DashboardRoute: typeof DashboardRoute
   EdaRoute: typeof EdaRoute
   FeaturesRoute: typeof FeaturesRoute
+  InterventionsRoute: typeof InterventionsRoute
   PredictRoute: typeof PredictRouteWithChildren
   ReportsRoute: typeof ReportsRoute
+  StudentsRoute: typeof StudentsRouteWithChildren
   AdminModelsRoute: typeof AdminModelsRoute
   DataCleanRoute: typeof DataCleanRoute
   DataUploadRoute: typeof DataUploadRoute
@@ -187,6 +238,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/students': {
+      id: '/students'
+      path: '/students'
+      fullPath: '/students'
+      preLoaderRoute: typeof StudentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -199,6 +257,13 @@ declare module '@tanstack/react-router' {
       path: '/predict'
       fullPath: '/predict'
       preLoaderRoute: typeof PredictRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interventions': {
+      id: '/interventions'
+      path: '/interventions'
+      fullPath: '/interventions'
+      preLoaderRoute: typeof InterventionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/features': {
@@ -222,12 +287,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alerts': {
+      id: '/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/students/$studentId': {
+      id: '/students/$studentId'
+      path: '/$studentId'
+      fullPath: '/students/$studentId'
+      preLoaderRoute: typeof StudentsStudentIdRouteImport
+      parentRoute: typeof StudentsRoute
     }
     '/predict/batch': {
       id: '/predict/batch'
@@ -285,13 +364,28 @@ const PredictRouteChildren: PredictRouteChildren = {
 const PredictRouteWithChildren =
   PredictRoute._addFileChildren(PredictRouteChildren)
 
+interface StudentsRouteChildren {
+  StudentsStudentIdRoute: typeof StudentsStudentIdRoute
+}
+
+const StudentsRouteChildren: StudentsRouteChildren = {
+  StudentsStudentIdRoute: StudentsStudentIdRoute,
+}
+
+const StudentsRouteWithChildren = StudentsRoute._addFileChildren(
+  StudentsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlertsRoute: AlertsRoute,
   DashboardRoute: DashboardRoute,
   EdaRoute: EdaRoute,
   FeaturesRoute: FeaturesRoute,
+  InterventionsRoute: InterventionsRoute,
   PredictRoute: PredictRouteWithChildren,
   ReportsRoute: ReportsRoute,
+  StudentsRoute: StudentsRouteWithChildren,
   AdminModelsRoute: AdminModelsRoute,
   DataCleanRoute: DataCleanRoute,
   DataUploadRoute: DataUploadRoute,

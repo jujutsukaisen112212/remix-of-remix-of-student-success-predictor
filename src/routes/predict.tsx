@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader, Section, Pill } from "@/components/ui-kit";
-import { WalkingLoader } from "@/components/WalkingLoader";
+import { TapLoader } from "@/components/TapLoader";
 import { ExplainPanel } from "@/components/ExplainPanel";
 import { useWorkspace } from "@/stores/workspace";
 import type { Student } from "@/data/students";
@@ -301,7 +301,7 @@ function PredictPage() {
           {phase === "loading" && (
             <div ref={loaderRef}>
               <Section>
-                <WalkingLoader label="Running ML model…" />
+                <TapLoader label="Running ML model…" />
               </Section>
             </div>
           )}
