@@ -16,6 +16,7 @@ import { Route as InterventionsRouteImport } from './routes/interventions'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as EdaRouteImport } from './routes/eda'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentsStudentIdRouteImport } from './routes/students.$studentId'
 import { Route as PredictBatchRouteImport } from './routes/predict.batch'
@@ -58,6 +59,11 @@ const EdaRoute = EdaRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlertsRoute = AlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -103,6 +109,7 @@ const AdminModelsRoute = AdminModelsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/alerts'
     | '/dashboard'
     | '/eda'
     | '/features'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/alerts'
     | '/dashboard'
     | '/eda'
     | '/features'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/alerts'
     | '/dashboard'
     | '/eda'
     | '/features'
@@ -209,6 +221,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlertsRoute: typeof AlertsRoute
   DashboardRoute: typeof DashboardRoute
   EdaRoute: typeof EdaRoute
   FeaturesRoute: typeof FeaturesRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alerts': {
+      id: '/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -358,6 +378,7 @@ const StudentsRouteWithChildren = StudentsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlertsRoute: AlertsRoute,
   DashboardRoute: DashboardRoute,
   EdaRoute: EdaRoute,
   FeaturesRoute: FeaturesRoute,
