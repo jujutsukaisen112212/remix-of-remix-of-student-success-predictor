@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudentsRouteImport } from './routes/students'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as PredictRouteImport } from './routes/predict'
 import { Route as FeaturesRouteImport } from './routes/features'
@@ -22,6 +23,11 @@ import { Route as DataUploadRouteImport } from './routes/data.upload'
 import { Route as DataCleanRouteImport } from './routes/data.clean'
 import { Route as AdminModelsRouteImport } from './routes/admin.models'
 
+const StudentsRoute = StudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/features': typeof FeaturesRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
+  '/students': typeof StudentsRoute
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/features': typeof FeaturesRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
+  '/students': typeof StudentsRoute
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/features': typeof FeaturesRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
+  '/students': typeof StudentsRoute
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/predict'
     | '/reports'
+    | '/students'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/predict'
     | '/reports'
+    | '/students'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/predict'
     | '/reports'
+    | '/students'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   FeaturesRoute: typeof FeaturesRoute
   PredictRoute: typeof PredictRouteWithChildren
   ReportsRoute: typeof ReportsRoute
+  StudentsRoute: typeof StudentsRoute
   AdminModelsRoute: typeof AdminModelsRoute
   DataCleanRoute: typeof DataCleanRoute
   DataUploadRoute: typeof DataUploadRoute
@@ -187,6 +200,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/students': {
+      id: '/students'
+      path: '/students'
+      fullPath: '/students'
+      preLoaderRoute: typeof StudentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -292,6 +312,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturesRoute: FeaturesRoute,
   PredictRoute: PredictRouteWithChildren,
   ReportsRoute: ReportsRoute,
+  StudentsRoute: StudentsRoute,
   AdminModelsRoute: AdminModelsRoute,
   DataCleanRoute: DataCleanRoute,
   DataUploadRoute: DataUploadRoute,
