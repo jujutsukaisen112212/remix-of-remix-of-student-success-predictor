@@ -1,72 +1,73 @@
-# Rebrand to Intellecta + Splash + Full Visual Overhaul
+## 1. Navigation cleanup (WorkspaceShell.tsx)
 
-## 1. Branding & assets
-- Save the uploaded logo to `src/assets/intellecta-logo.png` and `public/icon-512.png` (replace favicon/PWA icon).
-- Replace every "ScholarSense" / "Academic Analytics" string with **Intellecta** across:
-  - `src/components/WorkspaceShell.tsx` (sidebar header, topbar breadcrumb, page title fallback)
-  - `index.html` (`<title>`, meta description, OG/Twitter tags, apple-mobile-web-app-title)
-  - `public/manifest.json` (name, short_name, description, theme color)
-  - `src/routes/__root.tsx` (404 link target)
-  - Any remaining mentions in dashboard / reports / footer copy.
+- Remove **Cleaning** and **Feature Engineering** from the sidebar `NAV` (routes/files remain so existing links don't break, just hidden).
+- Rename labels + `TITLES`:
+  - `Data Collection` → **Data Portal**
+  - `EDA` → **Insights & Trends**
+- Reorganize sidebar groups to include the three new pages (see §3).
 
-## 2. Splash screen replaces the landing page
-- Delete `src/routes/index.tsx`'s landing content. Replace with a splash route:
-  - Centered Intellecta logo on a clean background matching the logo's navy + silver.
-  - Logo "blinks" (opacity pulse, ~1s cycle, 2 cycles ≈ 2s total) with a subtle scale.
-  - After ~2.2s, auto-navigate to `/dashboard` via `router.navigate`.
-  - Also clickable to skip.
-- Remove the `loc.pathname === "/"` early-return in `WorkspaceShell` so the splash renders fullscreen without the sidebar (use a flag or render splash component directly inside the route file with no shell wrapping — simplest: keep the early-return but render the splash inside index.tsx).
-- Update `manifest.json` `start_url` stays `/dashboard` so PWA opens past splash; web visitors hit `/` → splash → dashboard.
+## 2. Fix "Not Found" on `/dashboard`, `/predict`, etc.
 
-## 3. New color system (replace current indigo/slate palette)
-Adopt a **Navy + Silver + Soft Gold** palette inspired by the logo:
-- Primary: deep navy `oklch(0.32 0.10 255)` (matches logo blue)
-- Accent / chart highlight: warm gold `oklch(0.78 0.13 85)`
-- Secondary surfaces: warm silver/cool gray
-- Success/warn/danger retuned to harmonise (teal / amber / coral)
-- Update both `:root` and `.dark` blocks in `src/styles.css`, plus all 5 chart tokens.
-- Add a `--gradient-hero` and `--shadow-elegant` token used by cards.
+Symptom: hard-refresh or deep link on any non-root route renders TanStack's bare "Not Found" string.
 
-## 4. Layout pattern overhaul
-Switch from "sidebar + topbar + flat cards" to a **bento-style workspace**:
-- Sidebar: convert to a slim **icon rail** (always collapsed look, expands on hover) with a top logo badge. Group labels become tooltips.
-- Topbar: replace breadcrumb with a large page title + subtitle row, plus a right-side action cluster.
-- Page content: introduce a reusable `<BentoGrid>` and `<BentoTile>` (in `src/components/ui-kit.tsx`) that pages opt into. Tiles have rounded-2xl corners, soft elevation, and varied column spans (`col-span-2`, `row-span-2`) for visual rhythm — applied first on Dashboard, EDA, Evaluate, Reports.
-- Cards get `rounded-2xl`, hairline borders, gradient header strips for KPI tiles.
+Root cause: `src/routes/__root.tsx` (and/or router config) is missing `notFoundComponent` / `defaultNotFoundComponent`, AND the splash-screen logic in `src/routes/index.tsx` is likely throwing a `notFound()` or returning empty during SSR hydration, which TanStack's fuzzy not-found mode bubbles up to root. Will:
 
-## 5. Chart redesign (type + library style)
-Currently the app mixes hand-rolled SVG bar charts and Recharts. Standardise on **Recharts with a fresh visual language** and swap chart types where it improves the story:
-- Dashboard grade distribution: hand-rolled `<svg>` bars → **Recharts AreaChart** with gradient fill.
-- EDA correlations: bar list → **horizontal Recharts BarChart** with diverging colors (gold for positive, coral for negative).
-- EDA studytime/absences/failures averages: bar → **Recharts ComposedChart** (bars + line for count).
-- Pass-rate-by-group: bar → **Recharts RadialBarChart**.
-- Evaluate confusion matrix: keep matrix but restyle as a heatmap grid using token colors.
-- Evaluate feature importance: vertical bars → **Recharts horizontal BarChart with rounded caps**.
-- Predict explanation: keep but recolor.
-- Reports: add a sparkline strip (Recharts LineChart) above each section.
-All charts share a `chartTheme.ts` helper for axis/grid/tooltip styling using design tokens.
+- Add `notFoundComponent` to `__root.tsx` and `defaultNotFoundComponent` + `defaultErrorComponent` in `src/router.tsx`.
+- Audit `index.tsx` splash: ensure the `useEffect` redirect runs only client-side and the component always returns valid JSX during SSR (no conditional `null` returns that produce empty trees).
+- Confirm every new route file declares `createFileRoute("/exact-path")` matching its filename.
 
-## 6. Naming alignment
-The requested labels already match the current sidebar groups/items. Action: confirm and keep:
-- Group **Data Pipeline** → rename to **Data** (cleaner). Items: Data Collection, Cleaning, EDA, Feature Engineering.
-- Group **Modeling** → items: Evaluate, Predict, Batch Predict.
-- Group **Administration** → item: Model Operations.
-- Group **Output** → item: Reports.
-- Update `TITLES` map and any in-page H1s to match.
+## 3. Three new Supabase-backed pages
 
-## 7. Cleanup
-- Remove unused `<spline-viewer>` script tag from `index.html` (only the landing used it).
-- Remove `src/components/AppShell.tsx` if no longer referenced.
-- Drop the `GraduationCap` lucide icon header in favour of an `<img src={logo} />`.
+### 3a. Student Roster / Cohort View
+- Route: `src/routes/students.tsx` (list) + `src/routes/students.$studentId.tsx` (profile).
+- List: searchable/filterable table over existing `students` table (reuse `DataTable`), columns: name, class, attendance, final_score, risk_level. Row click → profile.
+- Profile: full metric breakdown + AI-generated risk factors (reuse `lib/explain.ts` `ExplainPanel`).
+- Sidebar group: **Students** → Roster.
+
+### 3b. Risk Mitigation / Interventions
+- Route: `src/routes/interventions.tsx`.
+- Lists students where `risk_level = 'High'` from `students` table.
+- New Supabase table `interventions` (migration): `id uuid pk`, `student_code text fk→students.student_code`, `kind text` (`email`, `tutoring`, `meeting`, `note`), `notes text`, `created_at timestamptz default now()`, `created_by text`.
+- RLS enabled; policies allow authenticated read/insert (no auth wired yet → permissive policies with TODO comment, matching existing `students` pattern).
+- UI: per-student card with intervention history + "Log intervention" dialog (kind select + notes textarea) → inserts row, optimistic update.
+- Sidebar group: **Risk** → Interventions.
+
+### 3c. Automated Reports / Alerts
+- Route: `src/routes/alerts.tsx`.
+- New Supabase table `alert_rules`: `id`, `name text`, `metric text` (`predicted_score`, `attendance`, `study_hours`), `operator text` (`lt`,`gt`,`lte`,`gte`), `threshold numeric`, `channel text` (`in_app`, `email`), `enabled bool default true`, `created_at`.
+- Companion table `alert_events`: `id`, `rule_id fk`, `student_code`, `value numeric`, `triggered_at`.
+- UI: list rules with toggle/edit/delete, "New rule" dialog, plus a "Recent alerts" feed reading `alert_events` (joined to student name). Evaluation runs client-side on rule save against current hydrated students; trigger inserts go to `alert_events`. (Server-side cron evaluation is out of scope for this turn; noted as follow-up.)
+- Sidebar group: **Output** → Reports, **Alerts**.
+
+All three pages use the existing `@/integrations/supabase/client` browser client. Types regenerate after migration.
+
+## 4. Replace Predict page animation
+
+- In `src/routes/predict.tsx`, replace the current loading/prediction animation with the supplied tapping-hand markup.
+- Move the CSS into `src/components/tap-loader.css` (using ASCII class names `tap-hand`, `tap-finger`, `tap-palm`, `tap-thumb` — emoji class names break Tailwind/PostCSS parsing in some builds). Markup mirrors the structure exactly (4 fingers + palm + thumb).
+- Add a small `<TapLoader />` component in `src/components/TapLoader.tsx` and import the CSS once.
+
+## 5. Pipeline automation (Supabase-side)
+
+Move cleaning + feature engineering out of the UI:
+
+- Migration adds:
+  - `students` columns (if missing): `risk_level text generated always as (...) stored` OR a `BEFORE INSERT/UPDATE` trigger `students_engineer()` that fills `risk_level`, normalizes nulls (coalesce attendance/study_hours to sane defaults), and clamps ranges.
+  - Function `public.engineer_student()` (plpgsql) — mirrors `data/students.ts::engineer` logic.
+  - Trigger `students_before_write` on insert/update.
+- Frontend `useHydrateWorkspace` already reads cleaned rows; remove client-side `engineer()` call once trigger lands (keep as fallback for offline/sample data).
+- Realtime: enable Supabase Realtime on `students`, `interventions`, `alert_events`; subscribe in `stores/workspace.tsx` so dashboard/cohort/alerts pages update live.
 
 ## Technical notes
-- All color changes go through `src/styles.css` tokens — no hex literals in components.
-- Splash uses CSS keyframes (no animation library needed).
-- Recharts is already a dependency (used in existing routes), no new installs.
-- Route tree unchanged — `/` still exists, just renders splash.
-- Keep Supabase wiring untouched.
+
+- Migrations are append-only files under `supabase/migrations/` (timestamp-prefixed). Will create one migration covering: `interventions`, `alert_rules`, `alert_events`, trigger function, realtime publication.
+- All new tables get `ALTER TABLE … ENABLE ROW LEVEL SECURITY` + permissive `FOR ALL TO public USING (true)` policies (matching current `students` posture) with a `-- TODO: tighten when auth lands` comment.
+- After migration, `src/integrations/supabase/types.ts` is regenerated automatically.
+- Routes added to file-based routing; `routeTree.gen.ts` regenerates on dev.
+- No changes to color tokens, logo, or splash screen.
 
 ## Out of scope
-- No backend/data changes.
-- No auth.
-- No new pages.
+
+- Authentication / user accounts (interventions `created_by` stored as plain text for now).
+- Server-side cron for alert evaluation (client-side trigger only this turn).
+- Email/SMS delivery for alerts (channel stored, delivery noted as follow-up).
