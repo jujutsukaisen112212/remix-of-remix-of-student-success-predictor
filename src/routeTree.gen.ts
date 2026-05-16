@@ -16,6 +16,7 @@ import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as EdaRouteImport } from './routes/eda'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudentsStudentIdRouteImport } from './routes/students.$studentId'
 import { Route as PredictBatchRouteImport } from './routes/predict.batch'
 import { Route as ModelTrainRouteImport } from './routes/model.train'
 import { Route as ModelEvaluateRouteImport } from './routes/model.evaluate'
@@ -58,6 +59,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudentsStudentIdRoute = StudentsStudentIdRouteImport.update({
+  id: '/$studentId',
+  path: '/$studentId',
+  getParentRoute: () => StudentsRoute,
+} as any)
 const PredictBatchRoute = PredictBatchRouteImport.update({
   id: '/batch',
   path: '/batch',
@@ -96,13 +102,14 @@ export interface FileRoutesByFullPath {
   '/features': typeof FeaturesRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
-  '/students': typeof StudentsRoute
+  '/students': typeof StudentsRouteWithChildren
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
   '/model/evaluate': typeof ModelEvaluateRoute
   '/model/train': typeof ModelTrainRoute
   '/predict/batch': typeof PredictBatchRoute
+  '/students/$studentId': typeof StudentsStudentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -111,13 +118,14 @@ export interface FileRoutesByTo {
   '/features': typeof FeaturesRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
-  '/students': typeof StudentsRoute
+  '/students': typeof StudentsRouteWithChildren
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
   '/model/evaluate': typeof ModelEvaluateRoute
   '/model/train': typeof ModelTrainRoute
   '/predict/batch': typeof PredictBatchRoute
+  '/students/$studentId': typeof StudentsStudentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -127,13 +135,14 @@ export interface FileRoutesById {
   '/features': typeof FeaturesRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
-  '/students': typeof StudentsRoute
+  '/students': typeof StudentsRouteWithChildren
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
   '/model/evaluate': typeof ModelEvaluateRoute
   '/model/train': typeof ModelTrainRoute
   '/predict/batch': typeof PredictBatchRoute
+  '/students/$studentId': typeof StudentsStudentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/model/evaluate'
     | '/model/train'
     | '/predict/batch'
+    | '/students/$studentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/model/evaluate'
     | '/model/train'
     | '/predict/batch'
+    | '/students/$studentId'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/model/evaluate'
     | '/model/train'
     | '/predict/batch'
+    | '/students/$studentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -190,7 +202,7 @@ export interface RootRouteChildren {
   FeaturesRoute: typeof FeaturesRoute
   PredictRoute: typeof PredictRouteWithChildren
   ReportsRoute: typeof ReportsRoute
-  StudentsRoute: typeof StudentsRoute
+  StudentsRoute: typeof StudentsRouteWithChildren
   AdminModelsRoute: typeof AdminModelsRoute
   DataCleanRoute: typeof DataCleanRoute
   DataUploadRoute: typeof DataUploadRoute
@@ -249,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/students/$studentId': {
+      id: '/students/$studentId'
+      path: '/$studentId'
+      fullPath: '/students/$studentId'
+      preLoaderRoute: typeof StudentsStudentIdRouteImport
+      parentRoute: typeof StudentsRoute
+    }
     '/predict/batch': {
       id: '/predict/batch'
       path: '/batch'
@@ -305,6 +324,18 @@ const PredictRouteChildren: PredictRouteChildren = {
 const PredictRouteWithChildren =
   PredictRoute._addFileChildren(PredictRouteChildren)
 
+interface StudentsRouteChildren {
+  StudentsStudentIdRoute: typeof StudentsStudentIdRoute
+}
+
+const StudentsRouteChildren: StudentsRouteChildren = {
+  StudentsStudentIdRoute: StudentsStudentIdRoute,
+}
+
+const StudentsRouteWithChildren = StudentsRoute._addFileChildren(
+  StudentsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
@@ -312,7 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturesRoute: FeaturesRoute,
   PredictRoute: PredictRouteWithChildren,
   ReportsRoute: ReportsRoute,
-  StudentsRoute: StudentsRoute,
+  StudentsRoute: StudentsRouteWithChildren,
   AdminModelsRoute: AdminModelsRoute,
   DataCleanRoute: DataCleanRoute,
   DataUploadRoute: DataUploadRoute,

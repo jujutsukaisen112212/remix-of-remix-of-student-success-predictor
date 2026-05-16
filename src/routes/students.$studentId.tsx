@@ -25,12 +25,12 @@ function StudentProfile() {
 
   useEffect(() => {
     if (!studentId) return;
-    supabase
+    (supabase as any)
       .from("interventions")
       .select("id,kind,notes,created_at,created_by")
       .eq("student_code", studentId)
       .order("created_at", { ascending: false })
-      .then(({ data }) => setHistory((data as Intervention[]) ?? []));
+      .then(({ data }: { data: Intervention[] | null }) => setHistory(data ?? []));
   }, [studentId]);
 
   if (!student) {
