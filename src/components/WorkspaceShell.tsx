@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { useHydrateWorkspace } from "@/stores/workspace";
+import { ChatbotFab } from "@/features/chatbot/ChatbotFab";
+import { NotificationBell } from "@/features/notifications/NotificationBell";
 
 const NAV: { label: string; items: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
   {
@@ -185,6 +187,7 @@ function Topbar() {
         <span className="hidden rounded-md border border-border bg-secondary/60 px-2 py-1 text-xs text-muted-foreground md:inline-flex">
           Role: <span className="ml-1 font-medium text-foreground">Faculty</span>
         </span>
+        <NotificationBell />
         <ThemeToggle />
       </div>
     </header>
@@ -207,6 +210,7 @@ export function WorkspaceShell() {
             <Outlet />
           </main>
         </div>
+        <ChatbotFab />
       </div>
     </SidebarProvider>
   );
