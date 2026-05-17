@@ -72,13 +72,16 @@ const TITLES: Record<string, string> = {
 
 function AppSidebar() {
   const loc = useLocation();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
+  const closeOnMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/dashboard" className="flex items-center gap-2.5 px-2 py-2">
+        <Link to="/dashboard" onClick={closeOnMobile} className="flex items-center gap-2.5 px-2 py-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
             <img src={logo} alt="Intellecta" className="h-7 w-7 object-contain" />
           </div>
@@ -101,7 +104,7 @@ function AppSidebar() {
                   return (
                     <SidebarMenuItem key={item.to}>
                       <SidebarMenuButton asChild isActive={active} tooltip={item.label}>
-                        <Link to={item.to}>
+                        <Link to={item.to} onClick={closeOnMobile}>
                           <item.icon className="h-4 w-4" />
                           <span>{item.label}</span>
                         </Link>
