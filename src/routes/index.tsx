@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import logo from "@/assets/intellecta-logo.png";
 
@@ -7,17 +7,21 @@ export const Route = createFileRoute("/")({
 });
 
 function Splash() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
-    const t = setTimeout(() => navigate({ to: "/dashboard" }), 2400);
+    const t = setTimeout(() => {
+      router.navigate({ to: "/dashboard" });
+    }, 2200);
     return () => clearTimeout(t);
-  }, [navigate]);
+  }, [router]);
+
+  const go = () => router.navigate({ to: "/dashboard" });
 
   return (
     <button
       type="button"
-      onClick={() => navigate({ to: "/dashboard" })}
+      onClick={go}
       aria-label="Enter Intellecta"
       className="fixed inset-0 z-[100] flex h-screen w-screen flex-col items-center justify-center bg-background"
     >
