@@ -18,7 +18,7 @@ type Intervention = {
 };
 
 function StudentProfile() {
-  const { studentId } = useParams({ from: "/students/$studentId" });
+  const { studentId } = useParams({ from: "/_authenticated/students/$studentId" });
   const students = useWorkspace((s) => s.students);
   const student = students.find((s) => s.id === studentId);
   const [history, setHistory] = useState<Intervention[]>([]);
