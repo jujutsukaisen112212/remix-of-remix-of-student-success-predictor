@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated.students'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated.reports'
@@ -26,51 +28,60 @@ import { Route as AuthenticatedDataUploadRouteImport } from './routes/_authentic
 import { Route as AuthenticatedDataCleanRouteImport } from './routes/_authenticated.data.clean'
 import { Route as AuthenticatedAdminModelsRouteImport } from './routes/_authenticated.admin.models'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedStudentsRoute = AuthenticatedStudentsRouteImport.update({
-  id: '/_authenticated/students',
+  id: '/students',
   path: '/students',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
-  id: '/_authenticated/reports',
+  id: '/reports',
   path: '/reports',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPredictRoute = AuthenticatedPredictRouteImport.update({
-  id: '/_authenticated/predict',
+  id: '/predict',
   path: '/predict',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedInterventionsRoute =
   AuthenticatedInterventionsRouteImport.update({
-    id: '/_authenticated/interventions',
+    id: '/interventions',
     path: '/interventions',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedFeaturesRoute = AuthenticatedFeaturesRouteImport.update({
-  id: '/_authenticated/features',
+  id: '/features',
   path: '/features',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedEdaRoute = AuthenticatedEdaRouteImport.update({
-  id: '/_authenticated/eda',
+  id: '/eda',
   path: '/eda',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/_authenticated/dashboard',
+  id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAlertsRoute = AuthenticatedAlertsRouteImport.update({
-  id: '/_authenticated/alerts',
+  id: '/alerts',
   path: '/alerts',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedStudentsStudentIdRoute =
   AuthenticatedStudentsStudentIdRouteImport.update({
@@ -85,35 +96,36 @@ const AuthenticatedPredictBatchRoute =
     getParentRoute: () => AuthenticatedPredictRoute,
   } as any)
 const AuthenticatedModelTrainRoute = AuthenticatedModelTrainRouteImport.update({
-  id: '/_authenticated/model/train',
+  id: '/model/train',
   path: '/model/train',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedModelEvaluateRoute =
   AuthenticatedModelEvaluateRouteImport.update({
-    id: '/_authenticated/model/evaluate',
+    id: '/model/evaluate',
     path: '/model/evaluate',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedDataUploadRoute = AuthenticatedDataUploadRouteImport.update({
-  id: '/_authenticated/data/upload',
+  id: '/data/upload',
   path: '/data/upload',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDataCleanRoute = AuthenticatedDataCleanRouteImport.update({
-  id: '/_authenticated/data/clean',
+  id: '/data/clean',
   path: '/data/clean',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAdminModelsRoute =
   AuthenticatedAdminModelsRouteImport.update({
-    id: '/_authenticated/admin/models',
+    id: '/admin/models',
     path: '/admin/models',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/alerts': typeof AuthenticatedAlertsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/eda': typeof AuthenticatedEdaRoute
@@ -132,6 +144,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/alerts': typeof AuthenticatedAlertsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/eda': typeof AuthenticatedEdaRoute
@@ -151,6 +164,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/auth': typeof AuthRoute
   '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/eda': typeof AuthenticatedEdaRoute
@@ -171,6 +186,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/alerts'
     | '/dashboard'
     | '/eda'
@@ -189,6 +205,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/alerts'
     | '/dashboard'
     | '/eda'
@@ -207,6 +224,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/auth'
     | '/_authenticated/alerts'
     | '/_authenticated/dashboard'
     | '/_authenticated/eda'
@@ -226,23 +245,26 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedEdaRoute: typeof AuthenticatedEdaRoute
-  AuthenticatedFeaturesRoute: typeof AuthenticatedFeaturesRoute
-  AuthenticatedInterventionsRoute: typeof AuthenticatedInterventionsRoute
-  AuthenticatedPredictRoute: typeof AuthenticatedPredictRouteWithChildren
-  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
-  AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
-  AuthenticatedAdminModelsRoute: typeof AuthenticatedAdminModelsRoute
-  AuthenticatedDataCleanRoute: typeof AuthenticatedDataCleanRoute
-  AuthenticatedDataUploadRoute: typeof AuthenticatedDataUploadRoute
-  AuthenticatedModelEvaluateRoute: typeof AuthenticatedModelEvaluateRoute
-  AuthenticatedModelTrainRoute: typeof AuthenticatedModelTrainRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -255,56 +277,56 @@ declare module '@tanstack/react-router' {
       path: '/students'
       fullPath: '/students'
       preLoaderRoute: typeof AuthenticatedStudentsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/reports': {
       id: '/_authenticated/reports'
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/predict': {
       id: '/_authenticated/predict'
       path: '/predict'
       fullPath: '/predict'
       preLoaderRoute: typeof AuthenticatedPredictRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/interventions': {
       id: '/_authenticated/interventions'
       path: '/interventions'
       fullPath: '/interventions'
       preLoaderRoute: typeof AuthenticatedInterventionsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/features': {
       id: '/_authenticated/features'
       path: '/features'
       fullPath: '/features'
       preLoaderRoute: typeof AuthenticatedFeaturesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/eda': {
       id: '/_authenticated/eda'
       path: '/eda'
       fullPath: '/eda'
       preLoaderRoute: typeof AuthenticatedEdaRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/alerts': {
       id: '/_authenticated/alerts'
       path: '/alerts'
       fullPath: '/alerts'
       preLoaderRoute: typeof AuthenticatedAlertsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/students/$studentId': {
       id: '/_authenticated/students/$studentId'
@@ -325,35 +347,35 @@ declare module '@tanstack/react-router' {
       path: '/model/train'
       fullPath: '/model/train'
       preLoaderRoute: typeof AuthenticatedModelTrainRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/model/evaluate': {
       id: '/_authenticated/model/evaluate'
       path: '/model/evaluate'
       fullPath: '/model/evaluate'
       preLoaderRoute: typeof AuthenticatedModelEvaluateRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/data/upload': {
       id: '/_authenticated/data/upload'
       path: '/data/upload'
       fullPath: '/data/upload'
       preLoaderRoute: typeof AuthenticatedDataUploadRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/data/clean': {
       id: '/_authenticated/data/clean'
       path: '/data/clean'
       fullPath: '/data/clean'
       preLoaderRoute: typeof AuthenticatedDataCleanRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/models': {
       id: '/_authenticated/admin/models'
       path: '/admin/models'
       fullPath: '/admin/models'
       preLoaderRoute: typeof AuthenticatedAdminModelsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
@@ -382,8 +404,23 @@ const AuthenticatedStudentsRouteWithChildren =
     AuthenticatedStudentsRouteChildren,
   )
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+interface AuthenticatedRouteChildren {
+  AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEdaRoute: typeof AuthenticatedEdaRoute
+  AuthenticatedFeaturesRoute: typeof AuthenticatedFeaturesRoute
+  AuthenticatedInterventionsRoute: typeof AuthenticatedInterventionsRoute
+  AuthenticatedPredictRoute: typeof AuthenticatedPredictRouteWithChildren
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRouteWithChildren
+  AuthenticatedAdminModelsRoute: typeof AuthenticatedAdminModelsRoute
+  AuthenticatedDataCleanRoute: typeof AuthenticatedDataCleanRoute
+  AuthenticatedDataUploadRoute: typeof AuthenticatedDataUploadRoute
+  AuthenticatedModelEvaluateRoute: typeof AuthenticatedModelEvaluateRoute
+  AuthenticatedModelTrainRoute: typeof AuthenticatedModelTrainRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEdaRoute: AuthenticatedEdaRoute,
@@ -397,6 +434,16 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedDataUploadRoute: AuthenticatedDataUploadRoute,
   AuthenticatedModelEvaluateRoute: AuthenticatedModelEvaluateRoute,
   AuthenticatedModelTrainRoute: AuthenticatedModelTrainRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
