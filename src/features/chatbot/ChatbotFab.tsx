@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle, X, Sparkles } from "lucide-react";
+import { createPortal } from "react-dom";
+import { useLocation } from "@tanstack/react-router";
+import { X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import mascot from "@/assets/chatbot-mascot.png";
 
 const STORAGE_KEY = "intellecta.chatbot.pos";
 
 export function ChatbotFab() {
+  const loc = useLocation();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const [pos, setPos] = useState<{ x: number; y: number }>(() => {
     if (typeof window === "undefined") return { x: 24, y: 24 };
     try {
@@ -40,7 +46,11 @@ export function ChatbotFab() {
     if (!moved) setOpen((v) => !v);
   };
 
-  return (
+  // Hide on splash and auth screens
+  if (loc.pathname === "/" || loc.pathname === "/auth") return null;
+  if (!mounted) return null;
+
+  const node = (
     <>
       <button
         aria-label="Open AI assistant"
@@ -49,20 +59,19 @@ export function ChatbotFab() {
         onPointerUp={onPointerUp}
         style={{ left: pos.x, bottom: pos.y }}
         className={cn(
-          "fixed z-40 flex h-14 w-14 items-center justify-center rounded-full",
-          "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg",
-          "ring-2 ring-background transition-transform hover:scale-110 active:scale-95",
+          "fixed z-[60] flex h-16 w-16 items-center justify-center rounded-full",
+          "bg-white shadow-xl ring-2 ring-primary/30 transition-transform hover:scale-110 active:scale-95",
           "touch-none select-none cursor-grab active:cursor-grabbing",
         )}
       >
-        <MessageCircle className="h-6 w-6" />
+        <img src={mascot} alt="AI Assistant" className="h-14 w-14 select-none object-contain" draggable={false} />
       </button>
       {open && (
         <div
           role="dialog"
           aria-modal="true"
-          style={{ left: pos.x, bottom: pos.y + 72 }}
-          className="fixed z-50 w-[min(90vw,320px)] rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-2xl"
+          style={{ left: pos.x, bottom: pos.y + 80 }}
+          className="fixed z-[60] w-[min(90vw,320px)] rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-2xl"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -94,4 +103,6 @@ export function ChatbotFab() {
       )}
     </>
   );
+
+  return createPortal(node, document.body);
 }

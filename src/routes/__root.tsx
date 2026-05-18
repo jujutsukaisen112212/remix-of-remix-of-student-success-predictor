@@ -1,7 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Link, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
-
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { WorkspaceShell } from "@/components/WorkspaceShell";
+import { ChatbotFab } from "@/features/chatbot/ChatbotFab";
+import { PwaInstallButton } from "@/components/PwaInstallButton";
 
 function NotFoundComponent() {
   return (
@@ -35,9 +38,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      router.invalidate();
+    });
+    return () => subscription.unsubscribe();
+  }, [router]);
   return (
     <QueryClientProvider client={queryClient}>
       <WorkspaceShell />
+      <ChatbotFab />
+      <PwaInstallButton />
     </QueryClientProvider>
   );
 }

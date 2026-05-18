@@ -4,7 +4,7 @@ import { Search, ChevronRight } from "lucide-react";
 import { PageHeader, Section, Pill } from "@/components/ui-kit";
 import { useWorkspace } from "@/stores/workspace";
 
-export const Route = createFileRoute("/students")({
+export const Route = createFileRoute("/_authenticated/students")({
   component: StudentsPage,
 });
 
