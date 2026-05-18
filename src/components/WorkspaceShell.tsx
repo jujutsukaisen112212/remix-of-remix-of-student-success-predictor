@@ -83,7 +83,7 @@ function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/dashboard" onClick={closeOnMobile} className="flex items-center gap-2.5 px-2 py-2">
+        <Link to="/_authenticated/dashboard" onClick={closeOnMobile} className="flex items-center gap-2.5 px-2 py-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
             <img src={logo} alt="Intellecta" className="h-7 w-7 object-contain" />
           </div>
@@ -178,7 +178,7 @@ function Topbar() {
       <div className="flex items-center gap-2">
         <SidebarTrigger />
         <nav className="ml-2 flex items-center gap-1.5 text-sm">
-          <Link to="/dashboard" className="font-mono text-xs font-bold tracking-[0.18em] text-muted-foreground hover:text-foreground">INTELLECTA</Link>
+          <Link to="/_authenticated/dashboard" className="font-mono text-xs font-bold tracking-[0.18em] text-muted-foreground hover:text-foreground">INTELLECTA</Link>
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="font-medium text-foreground">{title}</span>
         </nav>

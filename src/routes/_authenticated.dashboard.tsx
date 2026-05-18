@@ -35,7 +35,7 @@ function Dashboard() {
               {hydrated ? "Once you've added student records, charts and KPIs will populate here." : "Please wait while we hydrate your workspace."}
             </p>
             {hydrated && (
-              <Link to="/data/upload" className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+              <Link to="/_authenticated/data/upload" className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                 Add data
               </Link>
             )}
@@ -110,7 +110,7 @@ function Dashboard() {
         <Section
           title="At-risk students"
           description="Flagged for intervention this term"
-          actions={<Link to="/reports" className="text-xs font-medium text-primary hover:underline">View all →</Link>}
+          actions={<Link to="/_authenticated/reports" className="text-xs font-medium text-primary hover:underline">View all →</Link>}
         >
           <DataTable
             rows={atRisk}
@@ -129,7 +129,7 @@ function Dashboard() {
         <Section
           title="Top performers"
           description="Honor candidates"
-          actions={<Link to="/reports" className="text-xs font-medium text-primary hover:underline">View all →</Link>}
+          actions={<Link to="/_authenticated/reports" className="text-xs font-medium text-primary hover:underline">View all →</Link>}
         >
           <DataTable
             rows={top}

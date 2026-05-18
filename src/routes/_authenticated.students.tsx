@@ -71,7 +71,7 @@ function StudentsPage() {
               {rows.map((s) => (
                 <tr key={s.id} className="border-b border-border/40 hover:bg-accent/40">
                   <td className="px-5 py-2">
-                    <Link to="/students/$studentId" params={{ studentId: s.id }} className="font-medium hover:text-primary">
+                    <Link to="/_authenticated/students/$studentId" params={{ studentId: s.id }} className="font-medium hover:text-primary">
                       {s.name}
                     </Link>
                     <div className="font-mono text-[11px] text-muted-foreground">{s.id}</div>
@@ -85,7 +85,7 @@ function StudentsPage() {
                     </Pill>
                   </td>
                   <td className="px-5 py-2 text-right">
-                    <Link to="/students/$studentId" params={{ studentId: s.id }} className="text-muted-foreground hover:text-foreground">
+                    <Link to="/_authenticated/students/$studentId" params={{ studentId: s.id }} className="text-muted-foreground hover:text-foreground">
                       <ChevronRight className="inline h-4 w-4" />
                     </Link>
                   </td>
