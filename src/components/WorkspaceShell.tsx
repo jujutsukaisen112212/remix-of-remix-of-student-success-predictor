@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard, Upload, BarChart3,
   Gauge, Wand2, FileText, Moon, Sun, ChevronRight, FileSpreadsheet, Settings,
-  Users, ShieldAlert, BellRing,
+  Users, ShieldAlert, BellRing, LogOut,
 } from "lucide-react";
 import logo from "@/assets/intellecta-logo.png";
 import {
@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { useHydrateWorkspace } from "@/stores/workspace";
-import { ChatbotFab } from "@/features/chatbot/ChatbotFab";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "@tanstack/react-router";
 
 const NAV: { label: string; items: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
   {
