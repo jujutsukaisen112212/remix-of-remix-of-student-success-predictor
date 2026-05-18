@@ -10,7 +10,7 @@ import {
   Search, Info, User2,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/predict")({
+export const Route = createFileRoute("/predict")({
   component: PredictPage,
 });
 

@@ -5,7 +5,7 @@ import { PageHeader, Section, Pill, Kpi } from "@/components/ui-kit";
 import { useWorkspace } from "@/stores/workspace";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/_authenticated/students/$studentId")({
+export const Route = createFileRoute("/students/$studentId")({
   component: StudentProfile,
 });
 
@@ -18,7 +18,7 @@ type Intervention = {
 };
 
 function StudentProfile() {
-  const { studentId } = useParams({ from: "/_authenticated/students/$studentId" });
+  const { studentId } = useParams({ from: "/students/$studentId" });
   const students = useWorkspace((s) => s.students);
   const student = students.find((s) => s.id === studentId);
   const [history, setHistory] = useState<Intervention[]>([]);

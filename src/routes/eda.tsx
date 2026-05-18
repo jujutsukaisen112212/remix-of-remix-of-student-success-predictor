@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/eda")({
+export const Route = createFileRoute("/eda")({
   component: EDA,
 });
 

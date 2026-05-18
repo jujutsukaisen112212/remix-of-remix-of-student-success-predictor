@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard, Upload, BarChart3,
   Gauge, Wand2, FileText, Moon, Sun, ChevronRight, FileSpreadsheet, Settings,
-  Users, ShieldAlert, BellRing, LogOut,
+  Users, ShieldAlert, BellRing,
 } from "lucide-react";
 import logo from "@/assets/intellecta-logo.png";
 import {
@@ -12,9 +12,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { useHydrateWorkspace } from "@/stores/workspace";
+import { ChatbotFab } from "@/features/chatbot/ChatbotFab";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
-import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "@tanstack/react-router";
 
 const NAV: { label: string; items: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
   {
@@ -121,7 +120,6 @@ function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
-        <LogoutMenuItem collapsed={collapsed} />
         {!collapsed && (
           <div className="px-2 py-1.5 text-[11px] text-sidebar-foreground/60">
             Intellecta v1 · UCI + synthetic
@@ -129,29 +127,6 @@ function AppSidebar() {
         )}
       </SidebarFooter>
     </Sidebar>
-  );
-}
-
-function LogoutMenuItem({ collapsed }: { collapsed: boolean }) {
-  const { user, signOut } = useAuth();
-  const router = useRouter();
-  const handle = async () => {
-    await signOut();
-    router.navigate({ to: "/auth" });
-  };
-  return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <SidebarMenuButton onClick={handle} tooltip="Sign out" className="text-sidebar-foreground/90 hover:text-sidebar-foreground">
-          <LogOut className="h-4 w-4" />
-          {!collapsed && (
-            <span className="truncate">
-              {user?.email ? `Sign out (${user.email})` : "Sign out"}
-            </span>
-          )}
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    </SidebarMenu>
   );
 }
 
@@ -235,6 +210,7 @@ export function WorkspaceShell() {
             <Outlet />
           </main>
         </div>
+        <ChatbotFab />
       </div>
     </SidebarProvider>
   );

@@ -8,7 +8,7 @@ import { summary, topN, PASS_THRESHOLD } from "@/lib/analytics";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export const Route = createFileRoute("/_authenticated/reports")({
+export const Route = createFileRoute("/reports")({
   component: ReportsPage,
 });
 

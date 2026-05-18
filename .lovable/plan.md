@@ -1,76 +1,369 @@
-## 1. Chatbot — robot mascot, draggable anywhere on screen
+# Plan
 
-**Visual swap**
+## 1. Fix "/" showing Not Found in preview
 
-- Copy the uploaded robot image to `src/assets/chatbot-mascot.png`.
-- In `src/features/chatbot/ChatbotFab.tsx`, replace the `MessageCircle` icon with an `<img>` of the mascot. Drop the gradient background so the mascot reads as the button itself; keep the soft shadow and ring for affordance. Size ~64×64.
+The splash route exists but the preview shows 404. Most likely cause: the Lovable preview iframe sometimes deep-links to `/` while the route is still cold and `useNavigate` runs before the router is ready, or the splash renders fine but the auto-redirect lands on `/dashboard` cleanly elsewhere. To make `/` bulletproof:
 
-**Why it only moves "inside the nav bar" today**
-The FAB is rendered inside `WorkspaceShell`'s flex row that also contains the `<Sidebar>`. Even though the button is `position: fixed`, on mobile the sidebar's `<Sheet>` overlay (used by shadcn's `Sidebar` in `collapsible="offcanvas"` mode) creates a stacking/pointer-events context that captures drags once the sheet is open, and the FAB sits behind/inside it. The `pos.x`/`pos.y` clamp also uses `window.innerWidth` correctly, so the math is fine — the issue is mount location + z-index vs. the sidebar sheet.
+- Keep `src/routes/index.tsx` as the splash, but render the splash unconditionally (no redirect-on-mount race) and use a `<Link>`-based fallback plus `router.navigate` after the timeout.
+- Confirm there is no stray `src/routes/_app/index.tsx` or other file claiming `/` (would cause routing conflict). Audit `routeTree.gen.ts` references.
+- Ensure `__root.tsx` renders `<Outlet />` (via `WorkspaceShell`) for `/` — verified.
 
-**Fix**
+## 2. Auto-close sidebar on mobile/tablet nav click
 
-- Move `<ChatbotFab />` out of `WorkspaceShell` and render it once at the app root (inside `RootComponent` in `src/routes/__root.tsx`, after `<WorkspaceShell />`). That removes it from the sidebar's stacking context entirely.
-- Render it via a React Portal into `document.body` so nothing in the shell tree can clip it.
-- Bump z-index to `z-[60]` (above the sidebar sheet which is `z-50`) and add `pointer-events: auto` on the button while leaving the wrapper transparent.
-- Hide the FAB on the `/` splash and on `/auth` routes (simple `useLocation` check inside the component).
-- Keep the existing `pointer-events` drag logic — it already supports touch and mouse, persists position to `localStorage`, and clamps to the viewport.
+In `WorkspaceShell.tsx` `AppSidebar`, each `SidebarMenuButton` wraps a `Link`. On mobile, `useSidebar().setOpenMobile(false)` must fire on link click. Add an `onClick` handler on each `Link` that calls `setOpenMobile(false)` when `isMobile` is true. Apply the same to the logo link.
 
-## 2. Auth screen between splash and dashboard
+## 3. PWA support (manifest-only, installable on Android/iOS)
 
-**Flow**
+Per Lovable PWA guidance, ship a manifest-only PWA (no service worker) so the app is installable on Android & iOS without breaking the preview iframe.
 
-```text
-/  (splash, 2.2s blinking logo)
-        │
-        ▼
-/auth  (21st.dev sliding sign-in / sign-up panels)
-        │ on successful sign-in / sign-up
-        ▼
-/dashboard  (and the rest of the app)
-```
+- Update `public/manifest.json`: add proper `name`, `short_name`, `description`, `start_url: "/dashboard"`, `display: "standalone"`, `theme_color`, `background_color`, icons (192 + 512, plus maskable). Already mostly present — verify and add a 192 icon entry.
+- Update `index.html`: ensure `<link rel="manifest">`, `<meta name="theme-color">`, Apple-specific tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`, `apple-touch-icon`, `apple-mobile-web-app-title`). Most already exist — add `status-bar-style` and a 180x180 apple-touch-icon if missing.
+- No `vite-plugin-pwa`, no service worker (avoids preview cache problems).
+- Tell the user that install prompt only appears on the published `.lovable.app` URL, not in the editor preview.
 
-Per your choice, the splash always routes to `/auth` — even signed-in users see it briefly, and the auth screen offers a "Continue to dashboard" shortcut when a session already exists.
+## 4. Rewrite README.md
 
-**Auth model**
+Replace template README with a human-written one:
 
-- Email + password only (no profiles table, no roles, no Google).
-- Disable "Confirm email" in the Supabase Auth settings so sign-up = immediate access (I'll call this out in chat; it's a one-click toggle in the dashboard).
-- All existing routes get wrapped by a pathless `_authenticated` layout route so anything unauthenticated bounces to `/auth`. This is also what makes the locked-down RLS policies on `students`, `activity_logs`, `interventions`, `alerts`, etc. actually work.
+- Title: **Student Success Prediction System**
+- Description as provided
+- Features list (Student management, Performance prediction, Analytics dashboard, Student reports, Visualization)
+- Tech stack (React, TypeScript, Supabase, Tailwind, Vite)
+- Short Getting Started (`bun install`, `bun dev`) and project structure note
+- Conversational tone, not boilerplate
 
-**New files**
+## Files to change
 
-- `src/components/ui/auth-switch.tsx` — the 21st.dev sliding sign-in/sign-up component, ported to TypeScript and re-themed to Intellecta's navy/silver/gold palette (uses semantic tokens from `styles.css`, not raw colors). Lucide icons replace the emoji placeholders.
-- `src/routes/auth.tsx` — wraps `AuthSwitch`, wires both forms to `supabase.auth.signInWithPassword` / `supabase.auth.signUp`, shows inline error toasts, and on success calls `router.navigate({ to: "/dashboard" })`. If a session already exists on mount, shows a "Continue as &nbsp;" button instead of auto-redirecting (matches your "always show auth screen" choice).
-- `src/routes/_authenticated.tsx` — pathless layout route with `beforeLoad` that checks `supabase.auth.getSession()` and redirects to `/auth` if missing. Renders `<Outlet />`.
-- `src/hooks/use-auth.ts` — small hook that subscribes to `supabase.auth.onAuthStateChange` and exposes `{ session, user, signOut }`. Used by the topbar to show the user's email and a sign-out button.
-
-**Edits to existing files**
-
-- `src/routes/index.tsx` (splash): change the post-timeout target from `/dashboard` to `/auth`.
-- All current route files under `src/routes/` (except `index.tsx` and `auth.tsx`) get renamed into the `_authenticated/` folder so they inherit the guard. TanStack's file-based router picks this up via `routeTree.gen.ts` automatically — no manual route table edits.
-  - `dashboard.tsx → _authenticated/dashboard.tsx`
-  - `students.tsx`, `students.$studentId.tsx`, `interventions.tsx`, `alerts.tsx`, `eda.tsx`, `data.upload.tsx`, `data.clean.tsx`, `features.tsx`, `model.evaluate.tsx`, `model.train.tsx`, `predict.tsx`, `predict.batch.tsx`, `admin.models.tsx`, `reports.tsx` — same move.
-- `src/components/WorkspaceShell.tsx`: add the user email + sign-out button to the topbar; remove `<ChatbotFab />` (now mounted at root).
-- `src/routes/__root.tsx`: wire `onAuthStateChange` once (invalidates router so loaders re-run on sign-in/out); mount `<ChatbotFab />` here.
-
-**No new tables.** The previous migration already locked `students`, `activity_logs`, `interventions`, `alert_rules`, and `alert_events` to `authenticated` — adding the auth screen is what makes those policies usable. No schema changes in this plan.
-
-## What stays the same
-
-- All charts, pages, sidebar nav labels, splash visuals, color tokens, PWA manifest.
-- The existing security memory and RLS policies.
-- The FastAPI scaffold under `backend/`.
-
-## Out of scope (call out if you want them next)
-
-- Password reset / forgot password page.
-- Google / GitHub social sign-in.
-- Per-user data scoping (right now any signed-in user sees every student; we'd need a `created_by` column and policy rewrite to isolate cohorts).
-- Admin-only gating on Model Operations and Administration pages (requires a `user_roles` table you opted out of).
-- add an logout button with logout functionality at the bottom of the alert page in the navigation bar 
-- add an button as continue at the user authentication at the bottom and when the user clicks that continue without login flow them directly to the project that is dashboard 
-- the splash screen logo is displayed as square type change it to round logo 
-- the pwa for android device and ios is not working make sure it is working properly 
-- display the install button on the screen on the top right corner on the screen and when the user clicks on it they shoudl be able to download the project locally that is the pwa   
+- `src/routes/index.tsx` — harden splash navigation
+- `src/components/WorkspaceShell.tsx` — auto-close mobile sidebar on link click
+- `public/manifest.json` — finalize PWA manifest
+- `index.html` — Apple PWA meta tags
+- `README.md` — rewrite  
   
+You are upgrading an existing Student Success Prediction System into an advanced production-style application.
+  CRITICAL RULES — DO NOT VIOLATE
+  1. DO NOT remove existing features.
+  2. DO NOT change existing workflow.
+  3. DO NOT change navigation behavior.
+  4. DO NOT break routes.
+  5. DO NOT modify existing prediction logic unless instructed below.
+  6. Preserve all current UI screens and functionality.
+  7. Extend functionality without replacing existing functionality.
+  8. Existing pages should continue to work exactly as before.
+  9. Maintain responsiveness across mobile, tablet and desktop.
+  10. Follow clean architecture.
+  Use:
+  Frontend:
+  - React
+  - TypeScript
+  - Tailwind
+  - Existing chart library
+  Backend:
+  - Supabase
+  - Edge functions where needed
+  - FastAPI (for future ML integration)
+  - Python
+  - Scikit-learn
+  Folder architecture:
+  src/
+      features/
+      services/
+      hooks/
+      validation/
+      layouts/
+      constants/
+      shared/
+  ------------------------------------------------
+  FEATURE 1: AI PREDICTION IMPROVEMENTS
+  FRONTEND:
+  Enhance prediction output section.
+  Current:
+  Input → Prediction score
+  Upgrade to:
+  Prediction Result Card:
+  Predicted Score:
+  Risk Level:
+  Weak Subjects:
+  Attendance Analysis:
+  Improvement Suggestions:
+  Recommended Study Hours:
+  Performance Trend:
+  Confidence Score:
+  Display examples:
+  Predicted Score: 79%
+  Risk Level:
+  High
+  Weak Subjects:
+  Mathematics
+  Physics
+  Attendance Analysis:
+  Attendance below recommended threshold
+  Improvement Suggestions:
+  Increase study hours by 2 hours/day
+  Improve mathematics practice
+  Maintain attendance above 85%
+  Performance Trend:
+  Moderately improving
+  Confidence Score:
+  87%
+  Use badges and visual indicators.
+  Color rules:
+  High Risk → red
+  Medium → yellow
+  Low → green
+  BACKEND:
+  Create:
+  services/predictionService.ts
+  Create helper functions:
+  calculateRisk()
+  detectWeakSubjects()
+  generateRecommendations()
+  calculateConfidence()
+  Store results in database.
+  ------------------------------------------------
+  FEATURE 2: ADVANCED ANALYTICS DASHBOARD
+  FRONTEND:
+  Create dashboard cards:
+  Average Class Performance
+  Average Attendance
+  Total Students
+  Pass Percentage
+  Weak Students Count
+  Top Performers
+  Charts:
+  Bar chart:
+  Subject performance
+  Line chart:
+  Monthly trends
+  Pie chart:
+  Pass/fail ratio
+  Heatmap:
+  Attendance patterns
+  Leaderboard section:
+  Top Students
+  Weak Students
+  Recent Trends
+  BACKEND:
+  Create:
+  analyticsService.ts
+  Fetch:
+  Average score
+  Attendance averages
+  Student counts
+  Monthly performance
+  Pass/fail calculations
+  ------------------------------------------------
+  FEATURE 3: CSV + EXCEL UPLOAD
+  FRONTEND:
+  Create upload page.
+  Allow:
+  CSV upload
+  Excel upload
+  UI:
+  Drag and drop zone
+  Upload progress bar
+  File validation
+  Preview table before submit
+  Success notification
+  Error notification
+  BACKEND:
+  Parse:
+  CSV
+  XLSX
+  Automatically:
+  Validate rows
+  Store data in database
+  Generate predictions automatically
+  Log upload activity
+  ------------------------------------------------
+  FEATURE 4: SMART SEARCH AND FILTERS
+  FRONTEND:
+  Add search bar.
+  Search fields:
+  Student Name
+  Register Number
+  Email
+  Department
+  Add filters:
+  Department
+  Semester
+  Attendance %
+  Marks range
+  Risk level
+  Status
+  Include:
+  multi-select filters
+  reset filters button
+  BACKEND:
+  Create optimized query logic.
+  ------------------------------------------------
+  FEATURE 5: REAL-TIME NOTIFICATIONS
+  FRONTEND:
+  Notification bell in navbar
+  Dropdown panel:
+  Attendance alerts
+  Prediction alerts
+  System alerts
+  Student alerts
+  Display unread counts.
+  BACKEND:
+  Use Supabase realtime.
+  Generate alerts:
+  Attendance <75%
+  New student added
+  Multiple high-risk students detected
+  Prediction generated
+  ------------------------------------------------
+  FEATURE 6: REPORT GENERATION
+  FRONTEND:
+  Student profile page:
+  Buttons:
+  Download PDF
+  Export Excel
+  Generate Student Card
+  Preview report modal
+  BACKEND:
+  Generate:
+  PDF reports
+  Excel files
+  Student report cards
+  Include:
+  Student details
+  Prediction results
+  Attendance
+  Suggestions
+  Charts
+  ------------------------------------------------
+  FEATURE 7: ACTIVITY HISTORY
+  FRONTEND:
+  Create Recent Activity panel.
+  Display:
+  Teacher uploaded marks
+  Prediction generated
+  Student profile updated
+  Attendance modified
+  Filter by:
+  Date
+  Activity type
+  User
+  BACKEND:
+  Create activity_logs table.
+  Store:
+  action
+  timestamp
+  user id
+  details
+  ------------------------------------------------
+  FEATURE 8: CHATBOT PLACEHOLDER
+  IMPORTANT:
+  DO NOT implement actual AI chatbot logic.
+  FRONTEND:
+  Create floating chatbot button.
+  Requirements:
+  Position:
+  Bottom-left corner
+  Behavior:
+  Hover animation
+  Draggable by mouse
+  Movable across page
+  Rounded design
+  Small shadow effect
+  Persistent across all pages
+  Click action:
+  Open chatbot popup
+  Popup content:
+  --------------------------------
+  AI Assistant
+  This feature is currently under development.
+  Coming Soon 🚀
+  Future features:
+  • Performance guidance
+  • Study suggestions
+  • Prediction explanations
+  • AI support assistant
+  --------------------------------
+  Close button required.
+  BACKEND:
+  No backend implementation.
+  No API calls.
+  No AI logic.
+  Placeholder only.
+  ------------------------------------------------
+  FEATURE 9: DARK/LIGHT MODE
+  FRONTEND:
+  Add theme switch in navbar.
+  Requirements:
+  Dark mode
+  Light mode
+  Save preference locally
+  Persist after refresh
+  Smooth transitions
+  BACKEND:
+  No backend needed.
+  ------------------------------------------------
+  FEATURE 10: STUDENT PROFILE SYSTEM
+  FRONTEND:
+  Student profile page includes:
+  Profile photo
+  Name
+  Department
+  Semester
+  CGPA
+  Skills
+  Achievements
+  Performance summary
+  Prediction history
+  Recent activity
+  BACKEND:
+  Create profile storage tables.
+  ------------------------------------------------
+  FEATURE 11: PERFORMANCE COMPARISON
+  FRONTEND:
+  Comparison card:
+  Student vs Class Average
+  Metrics:
+  Attendance
+  Study Hours
+  Predicted Score
+  Marks
+  Display:
+  progress bars
+  comparison charts
+  difference indicators
+  BACKEND:
+  Calculate averages dynamically.
+  ------------------------------------------------
+  FEATURE 12: FUTURE ML MODEL STRUCTURE
+  DO NOT implement complete ML prediction now.
+  Prepare architecture only.
+  Backend structure:
+  backend/
+  FastAPI/
+  models/
+  prediction/
+  training/
+  Create placeholders for:
+  RandomForest
+  DecisionTree
+  XGBoost
+  Scikit-learn setup
+  Create API interfaces only.
+  No model training yet.
+  ------------------------------------------------
+  FINAL VERIFICATION
+  Before completion verify:
+  ✓ Existing functionality preserved
+  ✓ Existing routes preserved
+  ✓ Existing UI preserved
+  ✓ No broken imports
+  ✓ Mobile responsive
+  ✓ No console errors
+  ✓ New features integrated correctly
+  ✓ Chatbot only placeholder
+  ✓ Existing prediction still works
+  ✓ Backend services separated correctly
+
+## Out of scope
+
+- Offline support / service worker (intentionally avoided)
+- Push notifications

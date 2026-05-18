@@ -8,7 +8,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 
-export const Route = createFileRoute("/_authenticated/alerts")({
+export const Route = createFileRoute("/alerts")({
   component: AlertsPage,
 });
 

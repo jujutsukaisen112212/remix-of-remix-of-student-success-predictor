@@ -5,7 +5,7 @@ import { DataTable } from "@/components/DataTable";
 import { Layers, Sigma, ShieldAlert, Activity } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 
-export const Route = createFileRoute("/_authenticated/features")({
+export const Route = createFileRoute("/features")({
   component: FeaturesPage,
 });
 

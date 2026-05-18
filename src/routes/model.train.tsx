@@ -6,7 +6,7 @@ import { workspace, useWorkspace } from "@/stores/workspace";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/model/train")({
+export const Route = createFileRoute("/model/train")({
   component: TrainPage,
 });
 
