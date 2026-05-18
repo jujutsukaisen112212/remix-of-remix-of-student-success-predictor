@@ -11,12 +11,12 @@ function Splash() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      router.navigate({ to: "/dashboard" });
+      router.navigate({ to: "/auth" });
     }, 2200);
     return () => clearTimeout(t);
   }, [router]);
 
-  const go = () => router.navigate({ to: "/dashboard" });
+  const go = () => router.navigate({ to: "/auth" });
 
   return (
     <button
@@ -35,7 +35,7 @@ function Splash() {
       <img
         src={logo}
         alt="Intellecta"
-        className="intellecta-blink h-44 w-44 select-none object-contain md:h-60 md:w-60"
+        className="intellecta-blink h-44 w-44 select-none rounded-full bg-white object-cover p-4 shadow-2xl ring-4 ring-white/20 md:h-60 md:w-60"
         draggable={false}
       />
       <div className="intellecta-fadein mt-8 text-center">

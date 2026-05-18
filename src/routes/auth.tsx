@@ -23,7 +23,7 @@ function AuthPage() {
     supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
   }, []);
 
-  const goToDashboard = () => router.navigate({ to: "/dashboard" });
+  const goToDashboard = () => router.navigate({ to: "/_authenticated/dashboard" });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
