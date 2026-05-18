@@ -5,7 +5,7 @@ import { PageHeader, Section, Pill, Kpi } from "@/components/ui-kit";
 import { useWorkspace } from "@/stores/workspace";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/students/$studentId")({
+export const Route = createFileRoute("/_authenticated/students/$studentId")({
   component: StudentProfile,
 });
 

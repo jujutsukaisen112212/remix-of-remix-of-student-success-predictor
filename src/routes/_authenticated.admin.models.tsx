@@ -5,7 +5,7 @@ import { useModelVersions, addModelVersion, setActive, type ModelVersion } from 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
 import { Cpu, Play, CheckCircle2, GitBranch } from "lucide-react";
 
-export const Route = createFileRoute("/admin/models")({
+export const Route = createFileRoute("/_authenticated/admin/models")({
   component: AdminModels,
 });
 

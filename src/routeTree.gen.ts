@@ -15,7 +15,6 @@ import { Route as PredictRouteImport } from './routes/predict'
 import { Route as InterventionsRouteImport } from './routes/interventions'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as EdaRouteImport } from './routes/eda'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentsStudentIdRouteImport } from './routes/students.$studentId'
@@ -25,6 +24,7 @@ import { Route as ModelEvaluateRouteImport } from './routes/model.evaluate'
 import { Route as DataUploadRouteImport } from './routes/data.upload'
 import { Route as DataCleanRouteImport } from './routes/data.clean'
 import { Route as AdminModelsRouteImport } from './routes/admin.models'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 
 const StudentsRoute = StudentsRouteImport.update({
   id: '/students',
@@ -54,11 +54,6 @@ const FeaturesRoute = FeaturesRouteImport.update({
 const EdaRoute = EdaRouteImport.update({
   id: '/eda',
   path: '/eda',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AlertsRoute = AlertsRouteImport.update({
@@ -106,17 +101,22 @@ const AdminModelsRoute = AdminModelsRouteImport.update({
   path: '/admin/models',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/_authenticated/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
-  '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
   '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
   '/students': typeof StudentsRouteWithChildren
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
@@ -128,13 +128,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
-  '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
   '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
   '/students': typeof StudentsRouteWithChildren
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
@@ -147,13 +147,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
-  '/dashboard': typeof DashboardRoute
   '/eda': typeof EdaRoute
   '/features': typeof FeaturesRoute
   '/interventions': typeof InterventionsRoute
   '/predict': typeof PredictRouteWithChildren
   '/reports': typeof ReportsRoute
   '/students': typeof StudentsRouteWithChildren
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/models': typeof AdminModelsRoute
   '/data/clean': typeof DataCleanRoute
   '/data/upload': typeof DataUploadRoute
@@ -167,13 +167,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/alerts'
-    | '/dashboard'
     | '/eda'
     | '/features'
     | '/interventions'
     | '/predict'
     | '/reports'
     | '/students'
+    | '/dashboard'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
@@ -185,13 +185,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/alerts'
-    | '/dashboard'
     | '/eda'
     | '/features'
     | '/interventions'
     | '/predict'
     | '/reports'
     | '/students'
+    | '/dashboard'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
@@ -203,13 +203,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/alerts'
-    | '/dashboard'
     | '/eda'
     | '/features'
     | '/interventions'
     | '/predict'
     | '/reports'
     | '/students'
+    | '/_authenticated/dashboard'
     | '/admin/models'
     | '/data/clean'
     | '/data/upload'
@@ -222,13 +222,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertsRoute: typeof AlertsRoute
-  DashboardRoute: typeof DashboardRoute
   EdaRoute: typeof EdaRoute
   FeaturesRoute: typeof FeaturesRoute
   InterventionsRoute: typeof InterventionsRoute
   PredictRoute: typeof PredictRouteWithChildren
   ReportsRoute: typeof ReportsRoute
   StudentsRoute: typeof StudentsRouteWithChildren
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AdminModelsRoute: typeof AdminModelsRoute
   DataCleanRoute: typeof DataCleanRoute
   DataUploadRoute: typeof DataUploadRoute
@@ -278,13 +278,6 @@ declare module '@tanstack/react-router' {
       path: '/eda'
       fullPath: '/eda'
       preLoaderRoute: typeof EdaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/alerts': {
@@ -350,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminModelsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -379,13 +379,13 @@ const StudentsRouteWithChildren = StudentsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertsRoute: AlertsRoute,
-  DashboardRoute: DashboardRoute,
   EdaRoute: EdaRoute,
   FeaturesRoute: FeaturesRoute,
   InterventionsRoute: InterventionsRoute,
   PredictRoute: PredictRouteWithChildren,
   ReportsRoute: ReportsRoute,
   StudentsRoute: StudentsRouteWithChildren,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AdminModelsRoute: AdminModelsRoute,
   DataCleanRoute: DataCleanRoute,
   DataUploadRoute: DataUploadRoute,
