@@ -37,7 +37,7 @@ function StudentProfile() {
     return (
       <div className="space-y-6">
         <PageHeader title="Student not found" />
-        <Link to="/_authenticated/students" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+        <Link to="/students" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to roster
         </Link>
       </div>
@@ -48,7 +48,7 @@ function StudentProfile() {
 
   return (
     <div className="space-y-6">
-      <Link to="/_authenticated/students" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+      <Link to="/students" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-3.5 w-3.5" /> Roster
       </Link>
       <PageHeader
@@ -105,7 +105,7 @@ function StudentProfile() {
       <Section title="Intervention history" description="Logged via the Interventions page.">
         {history.length === 0 ? (
           <div className="py-6 text-center text-sm text-muted-foreground">
-            No interventions logged yet. <Link to="/_authenticated/interventions" className="text-primary hover:underline">Log one →</Link>
+            No interventions logged yet. <Link to="/interventions" className="text-primary hover:underline">Log one →</Link>
           </div>
         ) : (
           <ul className="space-y-2 text-sm">

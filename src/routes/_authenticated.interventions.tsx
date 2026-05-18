@@ -82,7 +82,7 @@ function InterventionsPage() {
               return (
                 <li key={s.id} className="flex items-center justify-between gap-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <Link to="/_authenticated/students/$studentId" params={{ studentId: s.id }} className="font-medium hover:text-primary">
+                    <Link to="/students/$studentId" params={{ studentId: s.id }} className="font-medium hover:text-primary">
                       {s.name}
                     </Link>
                     <div className="font-mono text-[11px] text-muted-foreground">
@@ -112,7 +112,7 @@ function InterventionsPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <Pill tone="primary">{k?.label ?? h.kind}</Pill>
-                      <Link to="/_authenticated/students/$studentId" params={{ studentId: h.student_code }} className="font-mono text-xs text-muted-foreground hover:text-foreground">
+                      <Link to="/students/$studentId" params={{ studentId: h.student_code }} className="font-mono text-xs text-muted-foreground hover:text-foreground">
                         {h.student_code}
                       </Link>
                     </div>
