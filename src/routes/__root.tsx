@@ -3,7 +3,7 @@ import { Link, createRootRouteWithContext, useRouter } from "@tanstack/react-rou
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkspaceShell } from "@/components/WorkspaceShell";
-import { ChatbotFab } from "@/features/chatbot/ChatbotFab";
+
 import { PwaInstallButton } from "@/components/PwaInstallButton";
 
 function NotFoundComponent() {
@@ -48,7 +48,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <WorkspaceShell />
-      <ChatbotFab />
+
       <PwaInstallButton />
     </QueryClientProvider>
   );

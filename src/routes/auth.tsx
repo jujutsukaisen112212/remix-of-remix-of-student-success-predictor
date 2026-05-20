@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Mail, Lock, User as UserIcon, Loader2, ArrowRight } from "lucide-react";
+import { Mail, Lock, User as UserIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
@@ -116,14 +116,6 @@ function AuthPage() {
         <span className="font-mono text-sm font-bold tracking-[0.22em] text-white">INTELLECTA</span>
       </div>
 
-      {/* Top-right escape hatch */}
-      <button
-        type="button"
-        onClick={goToDashboard}
-        className="absolute right-6 top-6 z-10 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-white/80 backdrop-blur-md transition hover:bg-white/10 hover:text-white"
-      >
-        Continue without signing in <ArrowRight className="h-3.5 w-3.5" />
-      </button>
 
       {/* Auth card — pinned left-center on desktop, centered on mobile */}
       <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4 md:justify-start md:px-[6vw]">
