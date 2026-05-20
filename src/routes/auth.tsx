@@ -97,7 +97,7 @@ function AuthPage() {
       <Toaster richColors position="top-center" />
 
       {/* Spline 3D background — cursor-reactive, fills the screen */}
-      <spline-viewer
+      <SplineViewer
         url="https://prod.spline.design/PJuKqla7qFzCSnir/scene.splinecode"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       />
