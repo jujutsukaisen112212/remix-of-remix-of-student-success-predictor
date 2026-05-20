@@ -1,56 +1,62 @@
-## What's actually broken
+## Goal
 
-`src/components/WorkspaceShell.tsx` wraps every route in `<SidebarProvider><AppSidebar/><Topbar/><Outlet/></SidebarProvider>` unless `pathname === "/"`. Because `/auth` is not in that exception list, the standalone auth page renders **inside** the dashboard chrome — sidebar, breadcrumb, "Role: Faculty", Install button, Sign-out item, all visible. That's the screenshot you posted.
+Replace the current `/auth` page with a fullscreen, cursor-reactive Spline 3D background and a glass auth card pinned to the left-center. Keep all existing auth logic (Supabase email/password sign-in + sign-up, post-login redirect to `/dashboard`, session listener, route guard via `_authenticated`).
 
-The auth route file (`src/routes/auth.tsx`) is already correct: it's a fullscreen `min-h-screen` gradient with the sliding sign-in/sign-up panel and the "Continue without signing in" button. It does not need to be rewritten — it just needs to render without the shell around it.
+## Files
 
-## Fix (one file, one line)
+1. **`index.html`** — add the Spline viewer module script in `<head>` so the custom element `<spline-viewer>` is globally registered (loads once, cached, avoids re-injecting per route).
+   ```html
+   <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.94/build/spline-viewer.js"></script>
+   ```
 
-`src/components/WorkspaceShell.tsx` — broaden the bare-`<Outlet/>` escape hatch so the auth route bypasses the dashboard shell, exactly like the splash route already does:
+2. **`src/vite-env.d.ts`** (or new `src/spline.d.ts`) — declare the custom element for TSX:
+   ```ts
+   declare namespace JSX {
+     interface IntrinsicElements {
+       'spline-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & { url?: string; 'loading-anim-type'?: string }, HTMLElement>;
+     }
+   }
+   ```
 
-```tsx
-// before
-if (loc.pathname === "/") return <Outlet />;
+3. **`src/routes/auth.tsx`** — full rewrite of the component, keeping the same `createFileRoute("/auth")` export and the same Supabase calls. New structure:
+   - Root: `relative min-h-screen w-full overflow-hidden bg-[#08080c]`
+   - Layer 1 (background): `<spline-viewer url="https://prod.spline.design/PJuKqla7qFzCSnir/scene.splinecode" class="absolute inset-0 h-full w-full" />` — NO `pointer-events-none` (cursor must reach it).
+   - Layer 2 (readability overlay): `absolute inset-0 pointer-events-none bg-gradient-to-r from-black/70 via-black/30 to-transparent` — pointer-events disabled so cursor passes through to Spline.
+   - Layer 3 (auth card): absolutely positioned `left-[6vw] top-1/2 -translate-y-1/2 w-full max-w-md` with `pointer-events-auto`. Rest of screen stays click-through to Spline.
+   - Top-left: Intellecta wordmark (unchanged).
+   - Top-right: "Continue without signing in" pill (unchanged behavior, restyled).
 
-// after
-if (loc.pathname === "/" || loc.pathname === "/auth") return <Outlet />;
-```
+4. **No other files touched.** `_authenticated.tsx`, `use-auth.ts`, `WorkspaceShell.tsx` (already excludes `/auth`), Supabase client, route tree — all stay as-is.
 
-That's the entire fix. After this:
-- `/` → splash, no chrome
-- `/auth` → fullscreen 21st.dev sliding panel, no chrome, no sidebar, no breadcrumb, no Install button
-- `/dashboard` and everything under `_authenticated/*` → full dashboard shell as today
+## Auth card content
 
-## What I am NOT going to do (and why)
+- Header: "Welcome back" / "Create account" + subtitle.
+- Tab toggle: two pills "Sign in" | "Sign up" with sliding active indicator (CSS transition on `translateX`, no extra deps).
+- Google button (full width, outlined, white text, Google `G` SVG icon) — calls `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: ${origin}/auth } })`.
+- Divider "or continue with email".
+- Inputs (glass style: `bg-white/5 border-white/10 focus:border-white/30`): email, password. Sign-up also shows name.
+- "Forgot password?" link (right-aligned, sign-in mode only) → calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: ${origin}/auth })` and toasts confirmation. No separate reset-password route added in this pass (matches current scope — can be added later if requested).
+- Primary submit button: gradient `from-white to-white/80` text-black, with loading spinner.
+- Mobile (`< md`): card centers horizontally, overlay becomes top-to-bottom gradient for readability.
 
-You pasted a long spec asking me to rebuild the auth flow from scratch — drop in a new `auth-switch.tsx`, rewrite the demo, add a landing page at `/`, create an auth context, etc. I'm pushing back because almost all of that already exists and works:
+## Design tokens
 
-- **Standalone `/auth` route** — exists at `src/routes/auth.tsx`. Uses React state (`useState<"signin" | "signup">`), no `document.querySelector`, no DOM mutation `useEffect`. Already matches your "USE REACT STATE DIRECTLY" requirement.
-- **Sliding animation** — already implemented with the navy gradient, the "New here? / One of us?" switch panel, and the mode toggle. Re-themed to Intellecta's palette (the original 21st.dev purple would clash).
-- **Route protection** — `src/routes/_authenticated.tsx` is a pathless layout with `beforeLoad` that calls `supabase.auth.getSession()` and throws `redirect({ to: "/auth" })` if missing. Every protected page lives under it (`_authenticated.dashboard.tsx`, etc.).
-- **Auth context** — `src/hooks/use-auth.ts` subscribes to `onAuthStateChange` and exposes `{ session, user, signOut }`. Used by the sidebar's Sign out button.
-- **Sign-in / sign-up / session persistence** — `supabase.auth.signInWithPassword` + `signUp` with toast errors and loading state. Supabase client persists sessions in `localStorage` (configured in `src/integrations/supabase/client.ts`).
-- **Post-login redirect** — `router.navigate({ to: "/dashboard" })` on success.
-- **Logout** — Sign out button in the sidebar footer that calls `signOut()` then navigates to `/auth`.
+Use existing semantic tokens where possible; for the dark glass surface the file uses inline Tailwind arbitrary values (`bg-white/5`, `border-white/10`, `backdrop-blur-xl`) consistent with the current auth file. No `styles.css` changes needed — this page is intentionally a dark standalone surface that does not need to follow the dashboard theme tokens (same approach as the existing `auth.tsx`).
 
-Rebuilding all of that would throw away the working integration and would not change what you actually see on screen. The only visible difference between "what the spec describes" and "what's built" is the shell bleeding through — which the one-line fix above eliminates.
+## Performance notes
 
-### About `/` → landing page
+- Spline viewer script loaded once via `index.html` (browser caches, no per-navigation reload).
+- `<spline-viewer>` is a web component — React doesn't re-render its internals, so cursor interaction stays at native 60fps.
+- Overlay div has `pointer-events-none`; auth card wrapper has `pointer-events-auto`. The empty right half of the screen passes clicks to Spline, preserving full cursor reactivity over the 3D face.
+- No `will-change` or transform tricks on the viewer — Spline handles its own raf loop.
+- No lazy-loading wrapper needed beyond the module script tag (it's already an ES module, deferred by default).
 
-Your spec says `/` should be a landing page and `/auth` the auth page. Today `/` is the **splash** (2.2s blinking-logo animation) that auto-routes to `/auth`. That was the explicit decision earlier in this thread ("remove the entire landing page and implement the splash screen effect ... directly after the splash screen direct to the dashboard", later updated to route through `/auth`). I'm leaving the splash as-is unless you tell me to swap it back to a marketing landing page — that would be a separate, much larger change.
+## Interactions kept identical to today
 
-## Files touched
+- `submit()` flow, error toasts, `goToDashboard()`, "Continue as current user" affordance when a session already exists, mode-switch state machine.
+- Google added as additive option; email/password remains primary.
 
-- `src/components/WorkspaceShell.tsx` — add `|| loc.pathname === "/auth"` to the bare-Outlet condition.
+## Out of scope (call out, don't build)
 
-That's it. No new files, no deletions, no dependency changes.
-
-## Verification
-
-After the change, navigating to `/auth` should show only:
-- The dark navy radial-gradient background
-- The Intellecta wordmark top-left
-- The "Continue without signing in" pill top-right
-- The centered glass card with the sliding sign-in/sign-up panels
-
-No sidebar, no breadcrumb, no "Role: Faculty" chip, no Install app button, no Sign out row. I'll confirm by reading the file post-edit and noting that `tsc --noEmit` stays clean.
+- `/reset-password` page (current project has none). Forgot-password will email a link that lands back on `/auth`; the user is auto-signed-in via the recovery token. Adding a dedicated reset form is a follow-up.
+- Enabling Google provider in Supabase dashboard — must be toggled on at https://supabase.com/dashboard/project/oudceonewduhsfhyiiny/auth/providers or the Google button will error. I'll surface this in the post-implementation message.
