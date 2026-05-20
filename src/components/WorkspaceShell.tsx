@@ -223,7 +223,7 @@ export function WorkspaceShell() {
   const loc = useLocation();
   useHydrateWorkspace();
   // Splash route renders fullscreen without the sidebar shell.
-  if (loc.pathname === "/") return <Outlet />;
+  if (loc.pathname === "/" || loc.pathname === "/auth") return <Outlet />;
   return (
     <SidebarProvider>
       <RouteProgress />
