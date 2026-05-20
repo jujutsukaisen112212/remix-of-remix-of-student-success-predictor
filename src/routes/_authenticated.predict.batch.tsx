@@ -7,7 +7,7 @@ import { useWorkspace } from "@/stores/workspace";
 import type { EngineeredStudent } from "@/data/students";
 import { Wand2, Download, Users, RefreshCw } from "lucide-react";
 
-export const Route = createFileRoute("/predict/batch")({
+export const Route = createFileRoute("/_authenticated/predict/batch")({
   component: BatchPredict,
 });
 

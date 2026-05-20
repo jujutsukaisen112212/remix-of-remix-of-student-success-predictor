@@ -6,7 +6,7 @@ import { DataTable } from "@/components/DataTable";
 import { CheckCircle2, AlertTriangle, Play, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/data/clean")({
+export const Route = createFileRoute("/_authenticated/data/clean")({
   component: DataClean,
 });
 

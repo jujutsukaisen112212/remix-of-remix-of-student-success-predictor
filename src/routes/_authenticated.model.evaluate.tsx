@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/model/evaluate")({
+export const Route = createFileRoute("/_authenticated/model/evaluate")({
   component: EvaluatePage,
 });
 
