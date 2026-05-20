@@ -1,76 +1,56 @@
-## 1. Chatbot — robot mascot, draggable anywhere on screen
+## What's actually broken
 
-**Visual swap**
+`src/components/WorkspaceShell.tsx` wraps every route in `<SidebarProvider><AppSidebar/><Topbar/><Outlet/></SidebarProvider>` unless `pathname === "/"`. Because `/auth` is not in that exception list, the standalone auth page renders **inside** the dashboard chrome — sidebar, breadcrumb, "Role: Faculty", Install button, Sign-out item, all visible. That's the screenshot you posted.
 
-- Copy the uploaded robot image to `src/assets/chatbot-mascot.png`.
-- In `src/features/chatbot/ChatbotFab.tsx`, replace the `MessageCircle` icon with an `<img>` of the mascot. Drop the gradient background so the mascot reads as the button itself; keep the soft shadow and ring for affordance. Size ~64×64.
+The auth route file (`src/routes/auth.tsx`) is already correct: it's a fullscreen `min-h-screen` gradient with the sliding sign-in/sign-up panel and the "Continue without signing in" button. It does not need to be rewritten — it just needs to render without the shell around it.
 
-**Why it only moves "inside the nav bar" today**
-The FAB is rendered inside `WorkspaceShell`'s flex row that also contains the `<Sidebar>`. Even though the button is `position: fixed`, on mobile the sidebar's `<Sheet>` overlay (used by shadcn's `Sidebar` in `collapsible="offcanvas"` mode) creates a stacking/pointer-events context that captures drags once the sheet is open, and the FAB sits behind/inside it. The `pos.x`/`pos.y` clamp also uses `window.innerWidth` correctly, so the math is fine — the issue is mount location + z-index vs. the sidebar sheet.
+## Fix (one file, one line)
 
-**Fix**
+`src/components/WorkspaceShell.tsx` — broaden the bare-`<Outlet/>` escape hatch so the auth route bypasses the dashboard shell, exactly like the splash route already does:
 
-- Move `<ChatbotFab />` out of `WorkspaceShell` and render it once at the app root (inside `RootComponent` in `src/routes/__root.tsx`, after `<WorkspaceShell />`). That removes it from the sidebar's stacking context entirely.
-- Render it via a React Portal into `document.body` so nothing in the shell tree can clip it.
-- Bump z-index to `z-[60]` (above the sidebar sheet which is `z-50`) and add `pointer-events: auto` on the button while leaving the wrapper transparent.
-- Hide the FAB on the `/` splash and on `/auth` routes (simple `useLocation` check inside the component).
-- Keep the existing `pointer-events` drag logic — it already supports touch and mouse, persists position to `localStorage`, and clamps to the viewport.
+```tsx
+// before
+if (loc.pathname === "/") return <Outlet />;
 
-## 2. Auth screen between splash and dashboard
-
-**Flow**
-
-```text
-/  (splash, 2.2s blinking logo)
-        │
-        ▼
-/auth  (21st.dev sliding sign-in / sign-up panels)
-        │ on successful sign-in / sign-up
-        ▼
-/dashboard  (and the rest of the app)
+// after
+if (loc.pathname === "/" || loc.pathname === "/auth") return <Outlet />;
 ```
 
-Per your choice, the splash always routes to `/auth` — even signed-in users see it briefly, and the auth screen offers a "Continue to dashboard" shortcut when a session already exists.
+That's the entire fix. After this:
+- `/` → splash, no chrome
+- `/auth` → fullscreen 21st.dev sliding panel, no chrome, no sidebar, no breadcrumb, no Install button
+- `/dashboard` and everything under `_authenticated/*` → full dashboard shell as today
 
-**Auth model**
+## What I am NOT going to do (and why)
 
-- Email + password only (no profiles table, no roles, no Google).
-- Disable "Confirm email" in the Supabase Auth settings so sign-up = immediate access (I'll call this out in chat; it's a one-click toggle in the dashboard).
-- All existing routes get wrapped by a pathless `_authenticated` layout route so anything unauthenticated bounces to `/auth`. This is also what makes the locked-down RLS policies on `students`, `activity_logs`, `interventions`, `alerts`, etc. actually work.
+You pasted a long spec asking me to rebuild the auth flow from scratch — drop in a new `auth-switch.tsx`, rewrite the demo, add a landing page at `/`, create an auth context, etc. I'm pushing back because almost all of that already exists and works:
 
-**New files**
+- **Standalone `/auth` route** — exists at `src/routes/auth.tsx`. Uses React state (`useState<"signin" | "signup">`), no `document.querySelector`, no DOM mutation `useEffect`. Already matches your "USE REACT STATE DIRECTLY" requirement.
+- **Sliding animation** — already implemented with the navy gradient, the "New here? / One of us?" switch panel, and the mode toggle. Re-themed to Intellecta's palette (the original 21st.dev purple would clash).
+- **Route protection** — `src/routes/_authenticated.tsx` is a pathless layout with `beforeLoad` that calls `supabase.auth.getSession()` and throws `redirect({ to: "/auth" })` if missing. Every protected page lives under it (`_authenticated.dashboard.tsx`, etc.).
+- **Auth context** — `src/hooks/use-auth.ts` subscribes to `onAuthStateChange` and exposes `{ session, user, signOut }`. Used by the sidebar's Sign out button.
+- **Sign-in / sign-up / session persistence** — `supabase.auth.signInWithPassword` + `signUp` with toast errors and loading state. Supabase client persists sessions in `localStorage` (configured in `src/integrations/supabase/client.ts`).
+- **Post-login redirect** — `router.navigate({ to: "/dashboard" })` on success.
+- **Logout** — Sign out button in the sidebar footer that calls `signOut()` then navigates to `/auth`.
 
-- `src/components/ui/auth-switch.tsx` — the 21st.dev sliding sign-in/sign-up component, ported to TypeScript and re-themed to Intellecta's navy/silver/gold palette (uses semantic tokens from `styles.css`, not raw colors). Lucide icons replace the emoji placeholders.
-- `src/routes/auth.tsx` — wraps `AuthSwitch`, wires both forms to `supabase.auth.signInWithPassword` / `supabase.auth.signUp`, shows inline error toasts, and on success calls `router.navigate({ to: "/dashboard" })`. If a session already exists on mount, shows a "Continue as &nbsp;" button instead of auto-redirecting (matches your "always show auth screen" choice).
-- `src/routes/_authenticated.tsx` — pathless layout route with `beforeLoad` that checks `supabase.auth.getSession()` and redirects to `/auth` if missing. Renders `<Outlet />`.
-- `src/hooks/use-auth.ts` — small hook that subscribes to `supabase.auth.onAuthStateChange` and exposes `{ session, user, signOut }`. Used by the topbar to show the user's email and a sign-out button.
+Rebuilding all of that would throw away the working integration and would not change what you actually see on screen. The only visible difference between "what the spec describes" and "what's built" is the shell bleeding through — which the one-line fix above eliminates.
 
-**Edits to existing files**
+### About `/` → landing page
 
-- `src/routes/index.tsx` (splash): change the post-timeout target from `/dashboard` to `/auth`.
-- All current route files under `src/routes/` (except `index.tsx` and `auth.tsx`) get renamed into the `_authenticated/` folder so they inherit the guard. TanStack's file-based router picks this up via `routeTree.gen.ts` automatically — no manual route table edits.
-  - `dashboard.tsx → _authenticated/dashboard.tsx`
-  - `students.tsx`, `students.$studentId.tsx`, `interventions.tsx`, `alerts.tsx`, `eda.tsx`, `data.upload.tsx`, `data.clean.tsx`, `features.tsx`, `model.evaluate.tsx`, `model.train.tsx`, `predict.tsx`, `predict.batch.tsx`, `admin.models.tsx`, `reports.tsx` — same move.
-- `src/components/WorkspaceShell.tsx`: add the user email + sign-out button to the topbar; remove `<ChatbotFab />` (now mounted at root).
-- `src/routes/__root.tsx`: wire `onAuthStateChange` once (invalidates router so loaders re-run on sign-in/out); mount `<ChatbotFab />` here.
+Your spec says `/` should be a landing page and `/auth` the auth page. Today `/` is the **splash** (2.2s blinking-logo animation) that auto-routes to `/auth`. That was the explicit decision earlier in this thread ("remove the entire landing page and implement the splash screen effect ... directly after the splash screen direct to the dashboard", later updated to route through `/auth`). I'm leaving the splash as-is unless you tell me to swap it back to a marketing landing page — that would be a separate, much larger change.
 
-**No new tables.** The previous migration already locked `students`, `activity_logs`, `interventions`, `alert_rules`, and `alert_events` to `authenticated` — adding the auth screen is what makes those policies usable. No schema changes in this plan.
+## Files touched
 
-## What stays the same
+- `src/components/WorkspaceShell.tsx` — add `|| loc.pathname === "/auth"` to the bare-Outlet condition.
 
-- All charts, pages, sidebar nav labels, splash visuals, color tokens, PWA manifest.
-- The existing security memory and RLS policies.
-- The FastAPI scaffold under `backend/`.
+That's it. No new files, no deletions, no dependency changes.
 
-## Out of scope (call out if you want them next)
+## Verification
 
-- Password reset / forgot password page.
-- Google / GitHub social sign-in.
-- Per-user data scoping (right now any signed-in user sees every student; we'd need a `created_by` column and policy rewrite to isolate cohorts).
-- Admin-only gating on Model Operations and Administration pages (requires a `user_roles` table you opted out of).
-- add an logout button with logout functionality at the bottom of the alert page in the navigation bar 
-- add an button as continue at the user authentication at the bottom and when the user clicks that continue without login flow them directly to the project that is dashboard 
-- the splash screen logo is displayed as square type change it to round logo 
-- the pwa for android device and ios is not working make sure it is working properly 
-- display the install button on the screen on the top right corner on the screen and when the user clicks on it they shoudl be able to download the project locally that is the pwa   
-  
+After the change, navigating to `/auth` should show only:
+- The dark navy radial-gradient background
+- The Intellecta wordmark top-left
+- The "Continue without signing in" pill top-right
+- The centered glass card with the sliding sign-in/sign-up panels
+
+No sidebar, no breadcrumb, no "Role: Faculty" chip, no Install app button, no Sign out row. I'll confirm by reading the file post-edit and noting that `tsc --noEmit` stays clean.
