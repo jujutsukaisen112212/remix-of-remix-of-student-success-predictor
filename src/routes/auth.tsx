@@ -9,6 +9,11 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+// Spline web component registered globally via index.html script tag.
+const SplineViewer = "spline-viewer" as unknown as React.ComponentType<
+  React.HTMLAttributes<HTMLElement> & { url?: string }
+>;
+
 function AuthPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
